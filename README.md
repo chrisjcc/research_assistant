@@ -167,3 +167,34 @@ src/research_assistant/
 mypy.ini                        # MyPy configuration
 TYPE_CHECKING_GUIDE.md         # Usage documentation
 ```
+
+
+## File Structure
+```
+tests/
+├── conftest.py                      # Shared fixtures (200+ lines)
+├── unit/
+│   ├── __init__.py
+│   ├── test_schemas.py             # Schema tests (400+ lines)
+│   ├── test_nodes.py               # Node tests (500+ lines)
+│   ├── test_state.py               # State tests (future)
+│   ├── test_tools.py               # Tool tests (future)
+│   └── test_utils.py               # Utility tests (future)
+├── integration/
+│   ├── __init__.py
+│   ├── test_graph_execution.py     # Integration tests (700+ lines)
+│   └── test_end_to_end.py          # E2E tests (future)
+├── cassettes/                       # VCR recordings
+│   └── .gitkeep
+└── fixtures/                        # Sample data files
+    └── .gitkeep
+
+# Configuration files
+pytest.ini                           # Pytest configuration
+.coveragerc                          # Coverage configuration
+tox.ini                              # Multi-version testing
+.github/workflows/test.yml          # CI/CD workflow
+
+# Documentation
+TESTING_GUIDE.md                    # Comprehensive testing guide
+```
