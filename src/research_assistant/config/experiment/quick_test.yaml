@@ -1,0 +1,23 @@
+# config/experiment/quick_test.yaml
+# Quick test configuration for development
+
+defaults:
+  - /default
+  - override /llm: openai
+  - override /search: minimal
+
+research:
+  max_analysts: 2
+  max_interview_turns: 1
+  enable_interrupts: false
+  detailed_prompts: false
+
+dev:
+  debug: true
+  verbose: true
+
+logging:
+  level: DEBUG
+
+output:
+  save_to_file: false

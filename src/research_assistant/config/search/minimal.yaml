@@ -1,0 +1,27 @@
+# config/search/minimal.yaml
+# Minimal search for faster execution
+
+web:
+  enabled: true
+  provider: tavily
+  max_results: 2
+  use_cache: true
+  cache_ttl: 7200  # Cache longer
+  rate_limit_requests: 10
+  rate_limit_window: 60
+  timeout: 20
+  
+  tavily:
+    api_key_env: TAVILY_API_KEY
+    search_depth: basic
+    include_answer: false
+    max_results: 2
+
+wikipedia:
+  enabled: true
+  load_max_docs: 1
+  use_cache: true
+  cache_ttl: 7200
+  rate_limit_requests: 10
+  rate_limit_window: 60
+  lang: en

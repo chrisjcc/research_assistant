@@ -1,0 +1,16 @@
+# config/topic/climate_tech.yaml
+# Pre-configured for Climate Technology research
+
+defaults:
+  - /experiment/comprehensive
+
+research:
+  max_analysts: 4
+  max_interview_turns: 3
+
+analyst_guidance: |
+  Focus on creating analysts with expertise in:
+  - Climate science
+  - Renewable energy technology
+  - Environmental policy
+  - Industry implementation

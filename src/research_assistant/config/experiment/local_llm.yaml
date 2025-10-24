@@ -1,0 +1,17 @@
+# config/experiment/local_llm.yaml
+# Configuration for local LLM usage
+
+defaults:
+  - /default
+  - override /llm: local
+  - override /search: minimal
+
+research:
+  max_analysts: 2
+  max_interview_turns: 2
+  enable_interrupts: false
+  detailed_prompts: false
+
+llm:
+  timeout: 120  # Local models may be slower
+  max_retries: 2

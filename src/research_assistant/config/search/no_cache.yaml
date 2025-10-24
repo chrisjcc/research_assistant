@@ -1,0 +1,26 @@
+# config/search/no_cache.yaml
+# Search without caching (for testing or real-time data)
+
+web:
+  enabled: true
+  provider: tavily
+  max_results: 3
+  use_cache: false
+  cache_ttl: 0
+  rate_limit_requests: 5  # Lower limit without cache
+  rate_limit_window: 60
+  timeout: 30
+  
+  tavily:
+    api_key_env: TAVILY_API_KEY
+    search_depth: basic
+    max_results: 3
+
+wikipedia:
+  enabled: true
+  load_max_docs: 2
+  use_cache: false
+  cache_ttl: 0
+  rate_limit_requests: 5
+  rate_limit_window: 60
+  lang: en

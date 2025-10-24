@@ -1,0 +1,20 @@
+# config/experiment/comprehensive.yaml
+# Comprehensive research configuration
+
+defaults:
+  - /default
+  - override /llm: openai
+  - override /search: comprehensive
+
+research:
+  max_analysts: 5
+  max_interview_turns: 3
+  enable_interrupts: true
+  detailed_prompts: true
+
+logging:
+  level: INFO
+
+output:
+  save_to_file: true
+  include_metadata: true

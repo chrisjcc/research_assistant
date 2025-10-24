@@ -1,0 +1,28 @@
+# config/search/comprehensive.yaml
+# Comprehensive search with more results
+
+web:
+  enabled: true
+  provider: tavily
+  max_results: 5
+  use_cache: true
+  cache_ttl: 3600
+  rate_limit_requests: 15
+  rate_limit_window: 60
+  timeout: 45
+  
+  tavily:
+    api_key_env: TAVILY_API_KEY
+    search_depth: advanced
+    include_answer: true
+    include_raw_content: false
+    max_results: 5
+
+wikipedia:
+  enabled: true
+  load_max_docs: 3
+  use_cache: true
+  cache_ttl: 7200
+  rate_limit_requests: 15
+  rate_limit_window: 60
+  lang: en
