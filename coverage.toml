@@ -1,0 +1,26 @@
+[run]
+branch = true
+source = ["src/research_assistant"]
+omit = [
+    "src/research_assistant/__init__.py",
+    "tests/*",
+]
+
+[report]
+show_missing = true
+skip_covered = false
+fail_under = 85  # Global minimum coverage threshold
+
+# Module-specific coverage thresholds
+[tool.coverage.paths]
+source = ["src/research_assistant"]
+
+[tool.coverage.report.precision]
+digits = 2
+
+[tool.coverage.report.module_thresholds]
+"src/research_assistant/core/schemas.py" = 95
+"src/research_assistant/nodes/*" = 85
+"src/research_assistant/tools/*" = 80
+"src/research_assistant/graphs/*" = 75
+"src/research_assistant/utils/*" = 85
