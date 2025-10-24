@@ -21,11 +21,16 @@ test-cov:
 
 
 # 🚀 Usage Examples:
+# Development workflow
 # make test-unit          # Run only unit tests
 # make test-watch          # Watch mode for TDD
+# Before commit
+# make test                  # All tests
+# make test-cov            # Full coverage report (HTML + terminal)
+# CI/CD
 # make test-all            # All tests including slow ones
 # make test-integration    # Integration tests only
-# make test-cov            # Full coverage report (HTML + terminal)
+# Debugging
 # pytest --pdb             # Drop into debugger on failure
 # pytest --lf              # Run last failed test
 # pytest tests/unit/test_schemas.py::TestAnalyst::test_create_valid_analyst -vv
