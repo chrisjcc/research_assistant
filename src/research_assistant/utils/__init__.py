@@ -1,9 +1,10 @@
 """Utility modules for research assistant.
 
-This package provides logging, formatting, and other utility functions.
+This package provides logging, formatting, error handling, and retry utilities.
 
 Example:
     >>> from research_assistant.utils import setup_logging, get_logger
+    >>> from research_assistant.utils import retry_with_backoff
     >>> setup_logging(level="INFO")
     >>> logger = get_logger(__name__)
 """
@@ -46,6 +47,97 @@ from .formatting import (
     format_file_size,
 )
 
+from .exceptions import (
+    # Base exceptions
+    ResearchAssistantError,
+    
+    # Configuration
+    ConfigurationError,
+    MissingAPIKeyError,
+    
+    # Analyst
+    AnalystError,
+    AnalystCreationError,
+    AnalystValidationError,
+    InsufficientAnalystsError,
+    
+    # Interview
+    InterviewError,
+    QuestionGenerationError,
+    AnswerGenerationError,
+    InterviewTimeoutError,
+    
+    # Search
+    SearchError,
+    WebSearchError,
+    WikipediaSearchError,
+    SearchTimeoutError,
+    RateLimitError,
+    NoSearchResultsError,
+    
+    # Report
+    ReportError,
+    SectionGenerationError,
+    ReportSynthesisError,
+    MissingSectionsError,
+    InvalidReportFormatError,
+    
+    # LLM
+    LLMError,
+    LLMAPIError,
+    LLMTimeoutError,
+    LLMResponseError,
+    TokenLimitError,
+    
+    # State
+    StateError,
+    InvalidStateError,
+    MissingStateFieldError,
+    StateValidationError,
+    
+    # Graph
+    GraphError,
+    GraphExecutionError,
+    NodeExecutionError,
+    GraphInterruptError,
+    
+    # Data
+    DataError,
+    DataValidationError,
+    DataTransformationError,
+    
+    # File
+    FileError,
+    FileReadError,
+    FileWriteError,
+    InvalidFileFormatError,
+    
+    # Utilities
+    is_recoverable_error,
+    get_error_context,
+    format_error_for_logging,
+)
+
+from .retry import (
+    RetryConfig,
+    CircuitBreakerConfig,
+    CircuitState,
+    get_circuit_breaker,
+    retry_with_backoff,
+    retry_on_rate_limit,
+    with_circuit_breaker,
+    with_timeout,
+    retry_llm_call,
+    retry_search_call,
+    FallbackHandler,
+    with_fallback,
+    safe_execute,
+    should_retry,
+    get_retry_delay,
+    reset_circuit_breaker,
+    get_circuit_breaker_status,
+)
+
 __all__ = [
     # Logging
     "setup_logging",
@@ -82,4 +174,70 @@ __all__ = [
     "format_error_report",
     "sanitize_for_filename",
     "format_file_size",
+    
+    # Exceptions
+    "ResearchAssistantError",
+    "ConfigurationError",
+    "MissingAPIKeyError",
+    "AnalystError",
+    "AnalystCreationError",
+    "AnalystValidationError",
+    "InsufficientAnalystsError",
+    "InterviewError",
+    "QuestionGenerationError",
+    "AnswerGenerationError",
+    "InterviewTimeoutError",
+    "SearchError",
+    "WebSearchError",
+    "WikipediaSearchError",
+    "SearchTimeoutError",
+    "RateLimitError",
+    "NoSearchResultsError",
+    "ReportError",
+    "SectionGenerationError",
+    "ReportSynthesisError",
+    "MissingSectionsError",
+    "InvalidReportFormatError",
+    "LLMError",
+    "LLMAPIError",
+    "LLMTimeoutError",
+    "LLMResponseError",
+    "TokenLimitError",
+    "StateError",
+    "InvalidStateError",
+    "MissingStateFieldError",
+    "StateValidationError",
+    "GraphError",
+    "GraphExecutionError",
+    "NodeExecutionError",
+    "GraphInterruptError",
+    "DataError",
+    "DataValidationError",
+    "DataTransformationError",
+    "FileError",
+    "FileReadError",
+    "FileWriteError",
+    "InvalidFileFormatError",
+    "is_recoverable_error",
+    "get_error_context",
+    "format_error_for_logging",
+    
+    # Retry & Circuit Breaker
+    "RetryConfig",
+    "CircuitBreakerConfig",
+    "CircuitState",
+    "get_circuit_breaker",
+    "retry_with_backoff",
+    "retry_on_rate_limit",
+    "with_circuit_breaker",
+    "with_timeout",
+    "retry_llm_call",
+    "retry_search_call",
+    "FallbackHandler",
+    "with_fallback",
+    "safe_execute",
+    "should_retry",
+    "get_retry_delay",
+    "reset_circuit_breaker",
+    "get_circuit_breaker_status",
 ]
