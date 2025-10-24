@@ -112,3 +112,35 @@ START → create_analysts → human_feedback → [conduct_interview×N] (paralle
                                           ↓
                                    finalize_report → END
 ```
+
+
+## Configuration Manager
+
+```
+config/
+├── default.yaml
+├── llm/
+│   ├── openai.yaml
+│   ├── openai_gpt4_turbo.yaml
+│   ├── anthropic.yaml
+│   ├── local.yaml
+│   └── cheap.yaml
+├── search/
+│   ├── default.yaml
+│   ├── comprehensive.yaml
+│   ├── minimal.yaml
+│   └── no_cache.yaml
+├── experiment/
+│   ├── quick_test.yaml
+│   ├── comprehensive.yaml
+│   ├── budget_friendly.yaml
+│   ├── production.yaml
+│   └── local_llm.yaml
+└── topic/
+    ├── ai_safety.yaml
+    └── climate_tech.yaml
+
+src/research_assistant/config/
+├── __init__.py
+└── config.py
+```
