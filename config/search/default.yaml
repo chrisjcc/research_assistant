@@ -1,0 +1,28 @@
+# config/search/default.yaml
+# Default search configuration
+
+web:
+  enabled: true
+  provider: tavily
+  max_results: 3
+  use_cache: true
+  cache_ttl: 3600
+  rate_limit_requests: 10
+  rate_limit_window: 60
+  timeout: 30
+  
+  tavily:
+    api_key_env: TAVILY_API_KEY
+    search_depth: basic  # Options: basic, advanced
+    include_answer: false
+    include_raw_content: false
+    max_results: 3
+
+wikipedia:
+  enabled: true
+  load_max_docs: 2
+  use_cache: true
+  cache_ttl: 7200
+  rate_limit_requests: 10
+  rate_limit_window: 60
+  lang: en

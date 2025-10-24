@@ -1,0 +1,17 @@
+# config/topic/ai_safety.yaml
+# Pre-configured for AI Safety research
+
+defaults:
+  - /experiment/comprehensive
+
+research:
+  max_analysts: 4
+  max_interview_turns: 3
+
+# Topic-specific analyst guidance
+analyst_guidance: |
+  Focus on creating analysts with diverse perspectives including:
+  - Technical AI researchers
+  - AI ethics and policy experts  
+  - Industry practitioners
+  - Academic researchers

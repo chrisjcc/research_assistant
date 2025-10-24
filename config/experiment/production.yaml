@@ -1,0 +1,36 @@
+# config/experiment/production.yaml
+# Production-ready configuration
+
+defaults:
+  - /default
+  - override /llm: openai
+  - override /search: default
+
+research:
+  max_analysts: 3
+  max_interview_turns: 2
+  enable_interrupts: true
+  detailed_prompts: false
+
+logging:
+  level: INFO
+  structured: true
+  file: ./logs/research_assistant.log
+
+checkpointing:
+  enabled: true
+  backend: sqlite
+  path: ./checkpoints
+
+output:
+  save_to_file: true
+  output_dir: ./outputs
+  include_metadata: true
+
+performance:
+  parallel_interviews: true
+  parallel_report_writing: true
+
+dev:
+  debug: false
+  enable_profiling: false

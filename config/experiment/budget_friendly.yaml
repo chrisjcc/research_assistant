@@ -1,0 +1,19 @@
+# config/experiment/budget_friendly.yaml
+# Cost-optimized configuration
+
+defaults:
+  - /default
+  - override /llm: cheap
+  - override /search: minimal
+
+research:
+  max_analysts: 2
+  max_interview_turns: 2
+  enable_interrupts: false
+  detailed_prompts: false
+
+search:
+  web:
+    cache_ttl: 7200  # Cache longer to reduce API calls
+  wikipedia:
+    cache_ttl: 14400
