@@ -1,0 +1,194 @@
+# mypy.ini
+# MyPy configuration for strict type checking
+
+[mypy]
+# Global options
+python_version = 3.11
+warn_return_any = True
+warn_unused_configs = True
+disallow_untyped_defs = True
+disallow_any_unimported = False
+no_implicit_optional = True
+warn_redundant_casts = True
+warn_unused_ignores = True
+warn_no_return = True
+warn_unreachable = True
+strict_equality = True
+strict_concatenate = True
+
+# Import discovery
+namespace_packages = True
+explicit_package_bases = True
+ignore_missing_imports = False
+
+# Error reporting
+show_error_codes = True
+show_error_context = True
+show_column_numbers = True
+pretty = True
+
+# Incremental mode
+incremental = True
+cache_dir = .mypy_cache
+
+# Exclude patterns
+exclude = (?x)(
+    ^tests/.*$
+    | ^build/.*$
+    | ^dist/.*$
+    | ^\..*$
+)
+
+# Per-module options - be lenient with external libraries
+[mypy-langchain.*]
+ignore_missing_imports = True
+
+[mypy-langchain_community.*]
+ignore_missing_imports = True
+
+[mypy-langchain_openai.*]
+ignore_missing_imports = True
+
+[mypy-langchain_tavily.*]
+ignore_missing_imports = True
+
+[mypy-langgraph.*]
+ignore_missing_imports = True
+
+[mypy-hydra.*]
+ignore_missing_imports = True
+
+[mypy-omegaconf.*]
+ignore_missing_imports = True
+
+[mypy-structlog.*]
+ignore_missing_imports = True
+
+[mypy-pandas.*]
+ignore_missing_imports = True
+
+[mypy-markdown.*]
+ignore_missing_imports = True
+
+---
+# pyproject.toml - Type checking section
+# Add this to your existing pyproject.toml
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+strict_equality = true
+show_error_codes = true
+namespace_packages = true
+
+[[tool.mypy.overrides]]
+module = [
+    "langchain.*",
+    "langchain_community.*",
+    "langchain_openai.*",
+    "langchain_tavily.*",
+    "langgraph.*",
+    "hydra.*",
+    "omegaconf.*",
+]
+ignore_missing_imports = true
+
+[tool.pyright]
+include = ["src"]
+exclude = [
+    "**/node_modules",
+    "**/__pycache__",
+    "**/.*",
+]
+pythonVersion = "3.11"
+typeCheckingMode = "strict"
+reportMissingImports = true
+reportMissingTypeStubs = false
+reportUnusedImport = true
+reportUnusedClass = true
+reportUnusedFunction = true
+reportDuplicateImport = true
+
+# Pyright overrides for external libraries
+[tool.pyright.reportMissingImports]
+langchain = false
+langchain_community = false
+langchain_openai = false
+langgraph = false
+hydra = false
+
+---
+# .github/workflows/type-check.yml
+# GitHub Actions workflow for type checking
+
+name: Type Check
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  mypy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install mypy
+        pip install -e ".[dev]"
+    
+    - name: Run MyPy
+      run: mypy src/research_assistant
+    
+    - name: Upload MyPy results
+      if: failure()
+      uses: actions/upload-artifact@v3
+      with:
+        name: mypy-results
+        path: .mypy_cache
+
+---
+# Makefile additions for type checking
+
+.PHONY: typecheck mypy pyright type-coverage
+
+typecheck: mypy
+
+mypy:
+	@echo "Running MyPy type checker..."
+	mypy src/research_assistant
+
+pyright:
+	@echo "Running Pyright type checker..."
+	pyright src/research_assistant
+
+type-coverage:
+	@echo "Checking type coverage..."
+	mypy --html-report mypy-report src/research_assistant
+	@echo "Report generated in mypy-report/index.html"
+
+type-install:
+	@echo "Installing type checking dependencies..."
+	pip install mypy pyright types-requests types-PyYAML
+
+---
+# src/research_assistant/py.typed
+# Empty marker file to indicate this package supports type checking
+# This file should be empty or contain only comments
+
+# This package uses inline type hints and supports PEP 561

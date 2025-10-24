@@ -144,3 +144,26 @@ src/research_assistant/config/
 ├── __init__.py
 └── config.py
 ```
+
+
+## File Structure
+```
+src/research_assistant/
+├── py.typed                    # Type checking marker
+├── utils/
+│   ├── __init__.py
+│   ├── logging.py             # Structured logging
+│   ├── formatting.py          # Output formatting
+│   ├── exceptions.py          # Custom exceptions
+│   └── retry.py               # Retry & circuit breaker
+├── types/
+│   ├── __init__.py
+│   ├── protocols.py           # Type protocols
+│   └── validation.py          # Runtime validation
+└── config/
+    └── ...                     # (Already created)
+
+# Configuration files
+mypy.ini                        # MyPy configuration
+TYPE_CHECKING_GUIDE.md         # Usage documentation
+```
