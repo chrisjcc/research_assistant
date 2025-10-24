@@ -73,3 +73,42 @@ research-assistant/
     ├── api.md
     └── usage.md
 ```
+
+## Graph Flow
+
+```
+START → ask_question → [search_web, search_wikipedia] (parallel)
+                     ↓
+            answer_question → route (ask_question OR save_interview)
+                     ↓
+            save_interview → write_section → END
+```
+
+**Features:**
+- Parallel search execution (web + Wikipedia)
+- Conditional routing based on interview progress
+- Integrated tool instances with dependency injection
+- Configurable max turns and search parameters
+
+**Utilities:**
+- `create_interview_config()` - Configuration factory
+- `get_interview_graph_info()` - Graph structure info
+- `visualize_interview_graph()` - PNG visualization
+
+#### 2. **`research_graph.py`** - Main Research Orchestrator
+**Main Components:**
+- `initiate_all_interviews()` - Conditional edge for Send() API
+- `build_research_graph()` - Complete research graph builder
+- `run_research()` - Convenience function for full execution
+- `stream_research()` - Generator for streaming updates
+- `continue_research()` - Resume after interrupt
+- `create_research_system()` - Factory for complete system
+
+**Graph Flow:**
+```
+START → create_analysts → human_feedback → [conduct_interview×N] (parallel via Send)
+                                          ↓
+        [write_report, write_introduction, write_conclusion] (parallel)
+                                          ↓
+                                   finalize_report → END
+```
