@@ -1,16 +1,25 @@
 .PHONY: install test lint format clean \
-        test-unit test-watch test-cov test-integration test-all
+        test-unit test-watch test-cov test-integration test-all help \
+        run-gradio run-streamlit
 
-# 🧩 Installation
-install:
+# 🧭 Help
+help: ## Show available make targets and their descriptions
+	@echo ""
+	@echo "Available make targets:"
+	@echo "-----------------------"
+	@grep -E '^[a-zA-Z_-]+:.*?##' Makefile | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2}'
+	@echo ""
+
+# 🚀  Installation
+install: ## Install package with dev and UI dependencies
 	uv pip install -e ".[dev,ui]"
 
 # 🧪 Core Testing
-test:
+test: ## Run all tests with coverage
 	pytest tests/ -v --cov=src/research_assistant
 
 # 📊 Test Coverage
-test-cov:
+test-cov: ## Generate detailed coverage report (HTML + terminal) and enforce thresholds
 	pytest tests/ --cov=src/research_assistant \
 	              --cov-config=coverage.toml \
 	              --cov-report=term-missing \
@@ -18,56 +27,40 @@ test-cov:
 	              -v
 	@python scripts/check_coverage.py
 
-
-
-# 🚀 Usage Examples:
-# Development workflow
-# make test-unit          # Run only unit tests
-# make test-watch          # Watch mode for TDD
-# Before commit
-# make test                  # All tests
-# make test-cov            # Full coverage report (HTML + terminal)
-# CI/CD
-# make test-all            # All tests including slow ones
-# make test-integration    # Integration tests only
-# Debugging
-# pytest --pdb             # Drop into debugger on failure
-# pytest --lf              # Run last failed test
-# pytest tests/unit/test_schemas.py::TestAnalyst::test_create_valid_analyst -vv
-
-# Unit tests only (fast subset)
-test-unit:
+# 🧱 Unit Tests
+test-unit: ## Run only unit tests (fast subset)
 	pytest tests/unit -v
 
-# Integration tests only
-test-integration:
+# 🔗 Integration Tests
+test-integration: ## Run only integration tests
 	pytest tests/integration -v
 
-# All tests, including slow ones (can be used for CI)
-test-all:
+# 🚦 All Tests (CI)
+test-all: ## Run all tests including slow or long-running ones
 	pytest tests -v -m "not skip"
 
-# Watch mode (TDD)
-test-watch:
+# 👀 Watch Mode (TDD)
+test-watch: ## Run tests in watch mode with desktop notifications on failure
 	ptw --onfail "notify-send 'Test Failed'" tests/
 
-# ✅ Linting & Formatting
-lint:
+# ✅ Linting & Type Checking
+lint: ## Run static analysis using Ruff and MyPy
 	ruff check src/
 	mypy src/
 
-format:
+# ✨ Formatting
+format: ## Auto-format source and test files using Ruff
 	ruff format src/ tests/
 
 # 🧹 Cleanup
-clean:
+clean: ## Remove caches, coverage reports, and temporary files
 	find . -type d -name "__pycache__" -exec rm -rf {} +
 	find . -type f -name "*.pyc" -delete
 	rm -rf .pytest_cache .coverage htmlcov/
 
 # 💻 App Launchers
-run-gradio:
+run-gradio: ## Launch Gradio Web UI
 	python app/gradio_app.py
 
-run-streamlit:
+run-streamlit: ## Launch Streamlit Web UI
 	streamlit run app/streamlit_app.py
