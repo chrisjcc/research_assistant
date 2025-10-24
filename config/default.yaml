@@ -1,0 +1,19 @@
+llm:
+  provider: openai
+  model: gpt-4o
+  temperature: 0
+  
+search:
+  web:
+    provider: tavily
+    max_results: 3
+  wikipedia:
+    load_max_docs: 2
+
+research:
+  max_analysts: 3
+  max_interview_turns: 2
+  
+logging:
+  level: INFO
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
