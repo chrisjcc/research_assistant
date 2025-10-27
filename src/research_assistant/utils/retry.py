@@ -10,22 +10,21 @@ Example:
     ...     return call_external_api()
 """
 
-import time
 import logging
-from typing import Callable, Optional, Tuple, Type, Union
-from functools import wraps
-from enum import Enum
+import time
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
+from enum import Enum
+from functools import wraps
+from typing import Callable, Optional, Tuple, Type, Union
 
 from .exceptions import (
-    RateLimitError,
-    SearchTimeoutError,
     LLMAPIError,
     LLMTimeoutError,
+    RateLimitError,
+    SearchTimeoutError,
     WebSearchError,
 )
-
 
 logger = logging.getLogger(__name__)
 

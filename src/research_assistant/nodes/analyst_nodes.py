@@ -17,15 +17,14 @@ Example:
 """
 
 import logging
-from typing import Dict, Any, Optional
+from typing import Any, Dict, Optional
 
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_openai import ChatOpenAI
 
-from ..core.schemas import Perspectives, Analyst
+from ..core.schemas import Analyst, Perspectives
 from ..core.state import GenerateAnalystsState
 from ..prompts.analyst_prompts import format_analyst_instructions
-
 
 # Configure logger
 logger = logging.getLogger(__name__)

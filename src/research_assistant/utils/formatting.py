@@ -11,9 +11,9 @@ Example:
 
 import json
 from datetime import datetime
+from io import StringIO
 from pathlib import Path
 from typing import Any, Dict, List, Optional
-from io import StringIO
 
 try:
     import pandas as pd

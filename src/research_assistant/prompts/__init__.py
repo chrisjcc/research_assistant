@@ -5,15 +5,15 @@ from .analyst_prompts import (
     format_regeneration_instructions,
 )
 from .interview_prompts import (
-    format_question_instructions,
     format_answer_instructions,
+    format_question_instructions,
     get_search_instructions_as_system_message,
 )
 from .report_prompts import (
-    format_section_instructions,
-    format_report_instructions,
-    format_introduction_instructions,
     format_conclusion_instructions,
+    format_introduction_instructions,
+    format_report_instructions,
+    format_section_instructions,
 )
 
 __all__ = [

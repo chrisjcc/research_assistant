@@ -15,7 +15,6 @@ Example:
 
 from typing import Optional
 
-
 # Main analyst creation instruction template
 ANALYST_CREATION_INSTRUCTIONS = """You are tasked with creating a set of AI analyst personas. Follow these instructions carefully:
 

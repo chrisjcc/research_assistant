@@ -6,11 +6,11 @@ Ensures per-module coverage thresholds are met.
 Reads configuration from coverage.toml.
 """
 
-import sys
-import subprocess
 import json
-from pathlib import Path
+import subprocess
+import sys
 import tomllib  # Python 3.11+
+from pathlib import Path
 
 CONFIG_PATH = Path("coverage.toml")
 COVERAGE_JSON = Path("coverage.json")

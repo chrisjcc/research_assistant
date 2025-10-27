@@ -9,11 +9,11 @@ Example:
     ...     assert result is not None
 """
 
-import pytest
-from typing import Any, Dict, List
-from unittest.mock import Mock, MagicMock
 from pathlib import Path
+from typing import Any, Dict, List
+from unittest.mock import MagicMock, Mock
 
+import pytest
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 from omegaconf import DictConfig, OmegaConf
 
@@ -23,7 +23,6 @@ from research_assistant.core.state import (
     InterviewState,
     ResearchGraphState,
 )
-
 
 # ============================================================================
 # Configuration Fixtures

@@ -11,21 +11,20 @@ Example:
 """
 
 import logging
-from typing import Dict, Any, Optional
+from typing import Any, Dict, Optional
 
 from langchain_openai import ChatOpenAI
-from langgraph.graph import END, StateGraph, START
+from langgraph.graph import END, START, StateGraph
 
 from ..core.state import InterviewState
 from ..nodes.interview_nodes import (
-    generate_question,
     generate_answer,
-    save_interview,
+    generate_question,
     route_messages,
+    save_interview,
 )
 from ..nodes.report_nodes import write_section
-from ..tools.search import WebSearchTool, WikipediaSearchTool, SearchQueryGenerator
-
+from ..tools.search import SearchQueryGenerator, WebSearchTool, WikipediaSearchTool
 
 # Configure logger
 logger = logging.getLogger(__name__)

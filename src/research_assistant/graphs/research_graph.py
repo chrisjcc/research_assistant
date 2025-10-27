@@ -10,25 +10,24 @@ Example:
 """
 
 import logging
-from typing import Dict, Any, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 from langchain_core.messages import HumanMessage
 from langchain_openai import ChatOpenAI
-from langgraph.types import Send
-from langgraph.graph import END, StateGraph, START
 from langgraph.checkpoint.memory import MemorySaver
+from langgraph.graph import END, START, StateGraph
+from langgraph.types import Send
 
-from ..core.state import ResearchGraphState, GenerateAnalystsState
 from ..core.schemas import Analyst
+from ..core.state import GenerateAnalystsState, ResearchGraphState
 from ..nodes.analyst_nodes import create_analysts, human_feedback
 from ..nodes.report_nodes import (
-    write_report,
-    write_introduction,
-    write_conclusion,
     finalize_report,
+    write_conclusion,
+    write_introduction,
+    write_report,
 )
 from .interview_graph import build_interview_graph
-
 
 # Configure logger
 logger = logging.getLogger(__name__)

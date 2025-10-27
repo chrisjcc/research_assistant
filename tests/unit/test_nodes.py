@@ -3,31 +3,31 @@
 Tests individual node functions with mocked dependencies.
 """
 
+from unittest.mock import MagicMock, Mock, patch
+
 import pytest
-from unittest.mock import Mock, patch, MagicMock
 
 from research_assistant.nodes.analyst_nodes import (
     create_analysts,
-    human_feedback,
-    validate_analyst_feedback,
     format_analysts_for_review,
     get_analyst_diversity_metrics,
+    human_feedback,
+    validate_analyst_feedback,
 )
 from research_assistant.nodes.interview_nodes import (
-    generate_question,
     generate_answer,
-    save_interview,
-    route_messages,
+    generate_question,
     get_interview_statistics,
+    route_messages,
+    save_interview,
 )
 from research_assistant.nodes.report_nodes import (
-    write_section,
-    write_report,
-    write_introduction,
-    write_conclusion,
     finalize_report,
+    write_conclusion,
+    write_introduction,
+    write_report,
+    write_section,
 )
-
 
 # ============================================================================
 # Analyst Node Tests

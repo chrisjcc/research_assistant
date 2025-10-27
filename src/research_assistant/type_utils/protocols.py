@@ -15,6 +15,7 @@ Example:
 """
 
 from typing import Any, Dict, List, Optional, Protocol, runtime_checkable
+
 from langchain_core.messages import BaseMessage
 
 

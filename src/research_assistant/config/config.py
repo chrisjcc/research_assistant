@@ -11,14 +11,13 @@ Example:
 
 import logging
 import os
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, Optional
-from dataclasses import dataclass
 
 from hydra import compose, initialize_config_dir
 from hydra.core.global_hydra import GlobalHydra
 from omegaconf import DictConfig, OmegaConf
-
 
 logger = logging.getLogger(__name__)
 

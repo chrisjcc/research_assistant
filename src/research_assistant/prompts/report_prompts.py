@@ -10,7 +10,6 @@ Example:
 
 from typing import List, Optional
 
-
 # Section writing instructions
 SECTION_WRITER_INSTRUCTIONS = """You are an expert technical writer. 
             

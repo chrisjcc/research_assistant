@@ -14,17 +14,17 @@ Example:
     >>> logger.info("Research started", extra={"topic": "AI Safety"})
 """
 
+import json
 import logging
 import logging.config
 import sys
 import time
-import json
-from pathlib import Path
-from typing import Any, Dict, Optional, Callable
 from contextlib import contextmanager
+from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from functools import wraps
-from dataclasses import dataclass, field, asdict
+from pathlib import Path
+from typing import Any, Callable, Dict, Optional
 
 try:
     import structlog

@@ -11,8 +11,8 @@ Example:
 """
 
 import inspect
-from typing import Any, Callable, Dict, get_args, get_origin, List, Optional, Type, Union
 from functools import wraps
+from typing import Any, Callable, Dict, List, Optional, Type, Union, get_args, get_origin
 
 from pydantic import BaseModel, ValidationError, field_validator
 

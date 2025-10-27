@@ -9,8 +9,8 @@ Example:
 """
 
 from typing import List, Optional
-from langchain_core.messages import SystemMessage
 
+from langchain_core.messages import SystemMessage
 
 # Question generation instructions
 QUESTION_GENERATION_INSTRUCTIONS = """You are an analyst tasked with interviewing an expert to learn about a specific topic. 

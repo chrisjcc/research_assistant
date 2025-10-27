@@ -11,22 +11,21 @@ Example:
     >>> print(f"Found {len(results)} results")
 """
 
+import hashlib
 import logging
 import time
-import hashlib
-from typing import Dict, Any, List, Optional, Callable
-from functools import wraps
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
+from functools import wraps
+from typing import Any, Callable, Dict, List, Optional
 
 from langchain_community.document_loaders import WikipediaLoader
-from langchain_tavily import TavilySearch
 from langchain_core.messages import SystemMessage
 from langchain_openai import ChatOpenAI
+from langchain_tavily import TavilySearch
 
 from ..core.schemas import SearchQuery
 from ..prompts.interview_prompts import get_search_instructions_as_system_message
-
 
 # Configure logger
 logger = logging.getLogger(__name__)

@@ -12,20 +12,24 @@ Example:
 """
 
 import logging
-from typing import Dict, Any, List, Optional, Literal
+from typing import Any, Dict, List, Literal, Optional
 
-from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, SystemMessage
-from langchain_core.messages import get_buffer_string
+from langchain_core.messages import (
+    AIMessage,
+    BaseMessage,
+    HumanMessage,
+    SystemMessage,
+    get_buffer_string,
+)
 from langchain_openai import ChatOpenAI
 
-from ..core.state import InterviewState
 from ..core.schemas import Analyst
+from ..core.state import InterviewState
 from ..prompts.interview_prompts import (
-    format_question_instructions,
     format_answer_instructions,
+    format_question_instructions,
     is_interview_complete,
 )
-
 
 # Configure logger
 logger = logging.getLogger(__name__)

@@ -4,21 +4,19 @@ Tests complete graph workflows with mocked external dependencies.
 Uses VCR.py for recording/replaying API calls.
 """
 
-import pytest
 from unittest.mock import Mock, patch
+
+import pytest
 import vcr
-
-from langchain_core.messages import HumanMessage, AIMessage
-
 from dotenv import load_dotenv
+from langchain_core.messages import AIMessage, HumanMessage
 
+from research_assistant.core.state import create_initial_research_state
 from research_assistant.graphs.interview_graph import build_interview_graph
 from research_assistant.graphs.research_graph import (
     build_research_graph,
     initiate_all_interviews,
 )
-from research_assistant.core.state import create_initial_research_state
-
 
 load_dotenv()  # take environment variables
 

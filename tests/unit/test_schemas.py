@@ -10,10 +10,9 @@ from research_assistant.core.schemas import (
     Analyst,
     Perspectives,
     SearchQuery,
-    validate_analyst_diversity,
     create_analyst_from_dict,
+    validate_analyst_diversity,
 )
-
 
 # ============================================================================
 # Analyst Model Tests

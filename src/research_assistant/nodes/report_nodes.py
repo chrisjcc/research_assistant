@@ -12,19 +12,18 @@ Example:
 
 import logging
 import re
-from typing import Dict, Any, List, Optional
+from typing import Any, Dict, List, Optional
 
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_openai import ChatOpenAI
 
 from ..core.state import InterviewState, ResearchGraphState
 from ..prompts.report_prompts import (
-    format_section_instructions,
-    format_report_instructions,
-    format_introduction_instructions,
     format_conclusion_instructions,
+    format_introduction_instructions,
+    format_report_instructions,
+    format_section_instructions,
 )
-
 
 # Configure logger
 logger = logging.getLogger(__name__)
