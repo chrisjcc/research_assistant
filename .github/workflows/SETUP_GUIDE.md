@@ -190,8 +190,8 @@ Test workflows locally before pushing:
 
 ```bash
 # Install dependencies
-pip install -r requirements.txt
-pip install pytest pytest-cov black isort flake8 ruff mypy
+python -m pip install --upgrade pip
+pip install -e ".[dev]"
 
 # Run linters
 black src scripts tests --check
@@ -276,7 +276,7 @@ on:
 
 **Solutions**:
 1. Check Python version matches: `python --version`
-2. Verify all dependencies in `requirements.txt`
+2. Verify all dependencies in `pyproject.toml`
 3. Check environment variables are set
 4. Look at detailed logs in Actions tab
 
