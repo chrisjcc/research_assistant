@@ -383,4 +383,10 @@ def validate_pydantic_model(
         # Re-raise with more context
         errors = e.errors()
         error_msgs = [
-            f"{err['loc'][0]}: {err
+            f"{'.'.join(str(loc) for loc in err['loc'])}: {err['msg']}"
+            for err in errors
+        ]
+        raise ValidationError.from_exception_data(
+            title=f"Validation error for {model_class.__name__}",
+            line_errors=errors
+        ) from e
