@@ -84,8 +84,7 @@ jobs:
     
     - name: Run Bandit security linter
       run: |
-        bandit -r src scripts -f json -o bandit-report.json || true
-        bandit -r src scripts -ll -ii
+        bandit -r src scripts -f json -o bandit-report.json -ll -ii || true
     
     - name: Run Semgrep
       run: |

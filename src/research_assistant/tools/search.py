@@ -94,7 +94,7 @@ class SearchCache:
             Cache key string.
         """
         content = f"{search_type}:{query.lower().strip()}"
-        return hashlib.md5(content.encode()).hexdigest()
+        return hashlib.sha256(content.encode()).hexdigest()
 
     def get(self, query: str, search_type: str) -> Optional[List[Dict[str, Any]]]:
         """Get cached results if available and not expired.
