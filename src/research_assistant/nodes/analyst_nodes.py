@@ -6,7 +6,7 @@ personas and handling human feedback during the analyst generation process.
 Example:
     >>> from research_assistant.nodes.analyst_nodes import create_analysts
     >>> from research_assistant.core.state import GenerateAnalystsState
-    >>> 
+    >>>
     >>> state = {
     ...     "topic": "AI Safety",
     ...     "max_analysts": 3,

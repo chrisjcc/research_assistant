@@ -6,7 +6,7 @@ It also provides utilities for state validation, transformation, and serializati
 
 Example:
     Creating and validating research state:
-    
+
     >>> from research_assistant.core.schemas import Analyst
     >>> state = ResearchGraphState(
     ...     topic="AI Safety",

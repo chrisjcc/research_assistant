@@ -5,11 +5,11 @@ type safety) and common interfaces used throughout the application.
 
 Example:
     >>> from research_assistant.type_utils.protocols import LLMProvider
-    >>> 
+    >>>
     >>> class MyLLM:
     ...     def invoke(self, messages: list) -> str:
     ...         return "response"
-    >>> 
+    >>>
     >>> # MyLLM satisfies LLMProvider protocol
     >>> llm: LLMProvider = MyLLM()
 """

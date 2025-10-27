@@ -6,7 +6,7 @@ interview queries, and perspectives.
 
 Example:
     Creating an analyst:
-    
+
     >>> analyst = Analyst(
     ...     name="Dr. Sarah Chen",
     ...     role="AI Safety Researcher",

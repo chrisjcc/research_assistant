@@ -6,7 +6,7 @@ including question generation, answer generation, and interview management.
 Example:
     >>> from research_assistant.nodes.interview_nodes import generate_question
     >>> from research_assistant.core.state import InterviewState
-    >>> 
+    >>>
     >>> result = generate_question(state)
     >>> print(result['messages'][-1].content)
 """

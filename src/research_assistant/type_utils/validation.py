@@ -5,7 +5,7 @@ complementing Pydantic models with additional validation logic.
 
 Example:
     >>> from research_assistant.type_utils.validation import validate_type, TypeValidator
-    >>> 
+    >>>
     >>> validate_type(42, int)  # True
     >>> validate_type("hello", int)  # Raises TypeError
 """
