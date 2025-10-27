@@ -283,30 +283,35 @@ def route_messages(
     
     # Count expert responses (completed turns)
     num_responses = len([
-        m for m in messages 
-        if isinstance(m, AIMessage) and m.name == expert_name
+        m for m in messages
+        if isinstance(m, AIMessage) and getattr(m, 'name', None) == expert_name
     ])
     
     logger.debug(
-        f"Interview progress: {num_responses}/{max_num_turns} turns completed"
+        f"Interview routing: {num_responses} responses out of {max_num_turns} max turns"
     )
     
-    # Check if max turns reached
-    if num_responses >= max_num_turns:
-        logger.info(f"Max turns ({max_num_turns}) reached, ending interview")
-        return "save_interview"
-    
-    # Check if analyst has concluded (look at last question)
-    # The last analyst question is at index -2 (before the latest expert answer)
-    if len(messages) >= 2:
-        last_question = messages[-2]
-        if isinstance(last_question, (AIMessage, HumanMessage)):
-            if is_interview_complete(last_question.content):
-                logger.info("Analyst concluded interview, ending")
+    # Check if analyst has concluded (look for conclusion phrases in last message)
+    if messages:
+        last_message = messages[-1]
+        if isinstance(last_message, HumanMessage):
+            conclusion_phrases = [
+                "thank you", "thanks", "that's all", 
+                "that'll be all", "goodbye", "that's everything"
+            ]
+            content_lower = last_message.content.lower()
+            if any(phrase in content_lower for phrase in conclusion_phrases):
+                logger.info("Interview concluded by analyst")
                 return "save_interview"
     
-    logger.debug("Continuing interview with another question")
-    return "ask_question"
+    # Continue if we haven't reached max turns yet
+    # CRITICAL FIX: Use < instead of >= 
+    if num_responses < max_num_turns:
+        logger.debug("Continuing interview")
+        return "ask_question"
+    else:
+        logger.info(f"Max turns ({max_num_turns}) reached")
+        return "save_interview"
 
 
 def get_interview_statistics(state: InterviewState) -> Dict[str, Any]:

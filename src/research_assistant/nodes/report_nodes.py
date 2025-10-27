@@ -449,7 +449,7 @@ def extract_sources_from_content(content: str) -> List[str]:
         >>> print(f"Found {len(sources)} sources")
     """
     # Pattern to match source lines like "[1] Source text"
-    pattern = r'^\[\d+\]\s+.+
+    pattern = r'^\[\d+\]\s+.+'
     
     sources = []
     in_sources_section = False
@@ -585,7 +585,7 @@ def validate_report_structure(content: str) -> Dict[str, bool]:
         ...     print("Warning: No sources section found")
     """
     return {
-        "has_title": bool(re.search(r'^#\s+.+, content, re.MULTILINE)),
+        "has_title": bool(re.search(r'^#\s+.+', content, re.MULTILINE)),
         "has_introduction": "## Introduction" in content or "## introduction" in content,
         "has_conclusion": "## Conclusion" in content or "## conclusion" in content,
         "has_sources": "## Sources" in content or "### Sources" in content,

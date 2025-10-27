@@ -21,7 +21,7 @@ Example:
 """
 
 from typing import List, Optional
-from pydantic import BaseModel, Field, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 
 class Analyst(BaseModel):
@@ -48,6 +48,21 @@ class Analyst(BaseModel):
         >>> analyst.get_short_description()
         'Prof. Michael Roberts (Economics Professor at Stanford University)'
     """
+    
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "name": "Dr. Emily Zhang",
+                "role": "Climate Scientist",
+                "affiliation": "MIT Climate Research Institute",
+                "description": (
+                    "Focuses on the intersection of AI and climate modeling. "
+                    "Particularly interested in how machine learning can improve "
+                    "climate predictions and inform policy decisions."
+                ),
+            }
+        }
+    )
     
     affiliation: str = Field(
         description="Primary affiliation of the analyst.",
@@ -154,22 +169,6 @@ class Analyst(BaseModel):
         if description_sentences:
             return description_sentences[0].strip() + "."
         return self.description
-    
-    class Config:
-        """Pydantic model configuration."""
-        
-        json_schema_extra = {
-            "example": {
-                "name": "Dr. Emily Zhang",
-                "role": "Climate Scientist",
-                "affiliation": "MIT Climate Research Institute",
-                "description": (
-                    "Focuses on the intersection of AI and climate modeling. "
-                    "Particularly interested in how machine learning can improve "
-                    "climate predictions and inform policy decisions."
-                ),
-            }
-        }
 
 
 class Perspectives(BaseModel):
@@ -193,6 +192,27 @@ class Perspectives(BaseModel):
         >>> perspectives.get_analyst_count()
         2
     """
+    
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "analysts": [
+                    {
+                        "name": "Dr. Emily Zhang",
+                        "role": "Climate Scientist",
+                        "affiliation": "MIT Climate Research Institute",
+                        "description": "Focuses on AI applications in climate modeling",
+                    },
+                    {
+                        "name": "Prof. Michael Chen",
+                        "role": "Policy Analyst",
+                        "affiliation": "Georgetown University",
+                        "description": "Examines policy implications of climate technology",
+                    },
+                ]
+            }
+        }
+    )
     
     analysts: List[Analyst] = Field(
         description="Comprehensive list of analysts with their roles and affiliations.",
@@ -236,18 +256,25 @@ class Perspectives(BaseModel):
         Returns:
             The validated list of analysts.
         """
-        roles = [analyst.role.lower() for analyst in v]
-        if len(roles) != len(set(roles)) and len(v) > 1:
-            # This is a warning-level issue, not an error
-            # In production, you might want to log this
+        roles = [analyst.role for analyst in v]
+        unique_roles = set(roles)
+        
+        # If more than 50% roles are duplicated, might want to diversify
+        if len(v) > 2 and len(unique_roles) / len(v) < 0.5:
+            # In production, you might want to log this warning
             pass
+        
         return v
     
     def get_analyst_count(self) -> int:
-        """Get the total number of analysts.
+        """Get the total number of analysts in the collection.
         
         Returns:
-            Integer count of analysts in the collection.
+            Integer count of analysts.
+            
+        Example:
+            >>> perspectives.get_analyst_count()
+            5
         """
         return len(self.analysts)
     
@@ -262,8 +289,7 @@ class Perspectives(BaseModel):
             
         Example:
             >>> analyst = perspectives.get_analyst_by_name("Dr. Emily Zhang")
-            >>> if analyst:
-            ...     print(analyst.role)
+            >>> print(analyst.role if analyst else "Not found")
         """
         for analyst in self.analysts:
             if analyst.name == name:
@@ -300,28 +326,6 @@ class Perspectives(BaseModel):
                 f"{i}. {analyst.name} - {analyst.role} at {analyst.affiliation}"
             )
         return "\n".join(summary_lines)
-    
-    class Config:
-        """Pydantic model configuration."""
-        
-        json_schema_extra = {
-            "example": {
-                "analysts": [
-                    {
-                        "name": "Dr. Emily Zhang",
-                        "role": "Climate Scientist",
-                        "affiliation": "MIT Climate Research Institute",
-                        "description": "Focuses on AI applications in climate modeling",
-                    },
-                    {
-                        "name": "Prof. Michael Chen",
-                        "role": "Policy Analyst",
-                        "affiliation": "Georgetown University",
-                        "description": "Examines policy implications of climate technology",
-                    },
-                ]
-            }
-        }
 
 
 class SearchQuery(BaseModel):
@@ -339,6 +343,14 @@ class SearchQuery(BaseModel):
         >>> query.get_word_count()
         5
     """
+    
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "search_query": "large language models scaling laws 2024"
+            }
+        }
+    )
     
     search_query: Optional[str] = Field(
         None,
@@ -421,15 +433,6 @@ class SearchQuery(BaseModel):
             {'query': 'AI climate change'}
         """
         return {"query": self.search_query}
-    
-    class Config:
-        """Pydantic model configuration."""
-        
-        json_schema_extra = {
-            "example": {
-                "search_query": "large language models scaling laws 2024"
-            }
-        }
 
 
 # Type aliases for common use cases

@@ -92,12 +92,44 @@ def mock_llm():
     """Provide a mock LLM that returns predefined responses.
     
     Returns:
-        Mock LLM instance.
+        Mock LLM instance with proper stop conditions for interview flow.
     """
     mock = Mock()
     
-    # Default response
-    mock.invoke.return_value = AIMessage(content="Test response")
+    # ✅ FIX: Use mock attribute to track calls (resets per test)
+    mock._call_count = 0
+    
+    def mock_invoke(messages):
+        """Mock invoke that simulates realistic interview responses."""
+        # Increment counter on the mock object itself
+        mock._call_count += 1
+        
+        # After 3 calls, return conclusion message to stop interview
+        if mock._call_count >= 3:
+            return AIMessage(
+                content="Thank you so much for your help! That's all I needed to know.",
+                name=None  # No name = interviewer concluding
+            )
+        
+        # Check context to determine if this is question or answer generation
+        if messages:
+            last_msg = messages[-1] if isinstance(messages, list) else messages
+            last_content = getattr(last_msg, 'content', str(last_msg))
+            
+            # If there's search context, this is answer generation
+            if 'Document' in last_content or len(messages) > 2:
+                return AIMessage(
+                    content="Based on the research, here is my expert analysis [1].",
+                    name="expert"  # Expert answering
+                )
+        
+        # Default: question generation
+        return AIMessage(
+            content="That's an interesting question. Can you tell me more about the specific aspects?",
+            name=None  # Interviewer asking
+        )
+    
+    mock.invoke.side_effect = mock_invoke
     
     # Support structured output
     def with_structured_output(schema):
@@ -111,7 +143,7 @@ def mock_llm():
                         name="Dr. Test",
                         role="Researcher",
                         affiliation="Test University",
-                        description="Test expert in testing"
+                        description="Test expert specializing in comprehensive testing"
                     )
                 ]
             )
@@ -124,7 +156,8 @@ def mock_llm():
         
         return structured_mock
     
-    mock.with_structured_output = with_structured_output
+    # Make with_structured_output a Mock that wraps the function
+    mock.with_structured_output = Mock(side_effect=with_structured_output)
     
     return mock
 
@@ -293,43 +326,28 @@ This article discusses machine learning best practices.
 
 
 # ============================================================================
-# State Fixtures
+# Sample Data Fixtures - State Objects
 # ============================================================================
 
 @pytest.fixture
-def sample_generate_analysts_state() -> GenerateAnalystsState:
-    """Provide sample GenerateAnalystsState.
-    
-    Returns:
-        GenerateAnalystsState dictionary.
-    """
-    return {
-        "topic": "AI Safety",
-        "max_analysts": 3,
-        "human_analyst_feedback": "",
-        "analysts": []
-    }
-
-
-@pytest.fixture
-def sample_interview_state(sample_analyst, sample_messages) -> InterviewState:
+def sample_interview_state(sample_analyst, sample_messages) -> Dict[str, Any]:
     """Provide sample InterviewState.
     
     Returns:
         InterviewState dictionary.
     """
     return {
-        "messages": sample_messages,
-        "max_num_turns": 2,
-        "context": [],
         "analyst": sample_analyst,
+        "messages": sample_messages,
+        "max_num_turns": 3,
+        "context": [],
         "interview": "",
         "sections": []
     }
 
 
 @pytest.fixture
-def sample_research_state(sample_analysts) -> ResearchGraphState:
+def sample_research_state(sample_analysts) -> Dict[str, Any]:
     """Provide sample ResearchGraphState.
     
     Returns:
@@ -347,6 +365,22 @@ def sample_research_state(sample_analysts) -> ResearchGraphState:
         "final_report": ""
     }
 
+
+@pytest.fixture
+def sample_generate_analysts_state() -> Dict[str, Any]:
+    """Provide sample GenerateAnalystsState.
+    
+    This state is used for the analyst generation phase of the workflow.
+    
+    Returns:
+        GenerateAnalystsState dictionary.
+    """
+    return {
+        "topic": "AI Safety",
+        "max_analysts": 3,
+        "human_analyst_feedback": "",
+        "analysts": []
+    }
 
 # ============================================================================
 # Mock Search Tool Fixtures
@@ -447,12 +481,26 @@ def mock_interview_graph():
     """Provide mock interview graph.
     
     Returns:
-        Mock compiled interview graph.
+        Mock compiled interview graph that returns complete InterviewState.
     """
     mock = Mock()
-    mock.invoke.return_value = {
-        "sections": ["## Test Section\n\nTest content [1]"]
-    }
+    
+    # FIXED: Return complete InterviewState dictionary, not just sections
+    def mock_invoke(state):
+        """Mock invoke that returns complete state."""
+        return {
+            "analyst": state.get("analyst"),
+            "messages": state.get("messages", []) + [
+                AIMessage(content="Mock expert response", name="expert")
+            ],
+            "max_num_turns": state.get("max_num_turns", 0),
+            "context": state.get("context", []) + ["<Document>Mock context</Document>"],
+            "interview": "Mock interview transcript:\nQ: Question\nA: Answer",
+            "sections": ["## Test Section\n\nTest content [1]\n\n### Sources\n[1] example.com"]
+        }
+    
+    mock.invoke.side_effect = mock_invoke
+    mock.side_effect = mock_invoke 
     return mock
 
 
@@ -577,7 +625,7 @@ def analyst_test_cases():
             "name": "Dr. Test",
             "role": "Researcher",
             "affiliation": "University",
-            "description": "Test description"
+            "description": "Test expert specializing in comprehensive testing"
         }, True),
         
         # Invalid cases

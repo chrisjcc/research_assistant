@@ -41,7 +41,7 @@ class TestAnalystNodes:
         sample_generate_analysts_state,
         mock_llm
     ):
-        """Test successful analyst creation."""
+        """Test expert specializing in comprehensive testing."""
         result = create_analysts(sample_generate_analysts_state, llm=mock_llm)
         
         assert "analysts" in result
@@ -66,7 +66,7 @@ class TestAnalystNodes:
             "human_analyst_feedback": ""
         }
         
-        with pytest.raises(ValueError, match="max_analysts must be"):
+        with pytest.raises(ValueError, match="max_analysts is required"):
             create_analysts(state, llm=mock_llm)
     
     def test_create_analysts_with_feedback(
@@ -209,13 +209,20 @@ class TestInterviewNodes:
     
     def test_route_messages_continue(self, sample_interview_state):
         """Test message routing to continue interview."""
+        from langchain_core.messages import AIMessage, HumanMessage
+
         sample_interview_state["max_num_turns"] = 2
-        
+
         # Only 1 expert response, should continue
+        sample_interview_state["messages"] = [
+            HumanMessage(content="Let's discuss AI safety"),
+            AIMessage(content="I'd be happy to discuss AI safety", name="expert")
+        ]
+
         route = route_messages(sample_interview_state)
-        
+
         assert route == "ask_question"
-    
+
     def test_route_messages_end_max_turns(self, sample_interview_state):
         """Test message routing when max turns reached."""
         sample_interview_state["max_num_turns"] = 1
@@ -264,7 +271,7 @@ class TestReportNodes:
     ):
         """Test successful section writing."""
         sample_interview_state["interview"] = "Q: Test? A: Answer [1]"
-        sample_interview_state["context"] = ["Test context"]
+        sample_interview_state["context_docs"] = ["Test context"]
         
         result = write_section(sample_interview_state, llm=mock_llm)
         

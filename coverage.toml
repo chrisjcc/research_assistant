@@ -10,17 +10,17 @@ omit = [
 show_missing = true
 skip_covered = false
 fail_under = 85  # Global minimum coverage threshold
+precision = 2
 
 # Module-specific coverage thresholds
-[tool.coverage.paths]
+[paths]
 source = ["src/research_assistant"]
 
-[tool.coverage.report.precision]
-digits = 2
 
-[tool.coverage.report.module_thresholds]
-"src/research_assistant/core/schemas.py" = 95
-"src/research_assistant/nodes/*" = 85
-"src/research_assistant/tools/*" = 80
-"src/research_assistant/graphs/*" = 75
-"src/research_assistant/utils/*" = 85
+# 👇 custom section read by check_coverage.py
+[coverage_thresholds]
+"core/schemas.py" = 95
+"nodes/" = 85
+"tools/" = 80
+"graphs/" = 75
+"utils/" = 85

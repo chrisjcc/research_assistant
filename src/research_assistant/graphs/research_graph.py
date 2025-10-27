@@ -14,7 +14,7 @@ from typing import Dict, Any, List, Optional, Union
 
 from langchain_core.messages import HumanMessage
 from langchain_openai import ChatOpenAI
-from langgraph.constants import Send
+from langgraph.types import Send
 from langgraph.graph import END, StateGraph, START
 from langgraph.checkpoint.memory import MemorySaver
 

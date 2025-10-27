@@ -84,6 +84,10 @@ def create_analysts(
     if not max_analysts:
         raise ValueError("max_analysts is required for analyst creation")
     
+    # Validate max_analysts is within acceptable range
+    if max_analysts < 1 or max_analysts > 10:
+        raise ValueError("max_analysts must be between 1 and 10")
+
     if not isinstance(max_analysts, int) or max_analysts < 1:
         raise ValueError(f"max_analysts must be positive integer, got {max_analysts}")
     
@@ -280,6 +284,7 @@ def get_analyst_diversity_metrics(analysts: list[Analyst]) -> Dict[str, Any]:
     """
     if not analysts:
         return {
+            "total_analysts": 0,
             "unique_roles": 0,
             "unique_affiliations": 0,
             "role_diversity_ratio": 0.0,

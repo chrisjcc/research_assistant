@@ -61,7 +61,7 @@ class TestAnalyst:
                 name="A",  # Too short
                 role="Researcher",
                 affiliation="University",
-                description="Test description"
+                description="Test expert specializing in comprehensive testing"
             )
         
         assert "name" in str(exc_info.value).lower()
@@ -72,13 +72,13 @@ class TestAnalyst:
             name="  Dr. Test  ",
             role="  Researcher  ",
             affiliation="  University  ",
-            description="  Test description  "
+            description="  Test expert specializing in comprehensive testing  "
         )
         
         assert analyst.name == "Dr. Test"
         assert analyst.role == "Researcher"
         assert analyst.affiliation == "University"
-        assert analyst.description == "Test description"
+        assert analyst.description == "Test expert specializing in comprehensive testing"
     
     def test_analyst_description_word_count(self):
         """Test description must have minimum words."""
@@ -103,7 +103,7 @@ class TestAnalyst:
     
     def test_analyst_json_schema_example(self):
         """Test JSON schema example is valid."""
-        example = Analyst.Config.json_schema_extra["example"]
+        example = Analyst.model_config["json_schema_extra"]["example"]
         analyst = Analyst(**example)
         
         assert analyst.name == "Dr. Emily Zhang"
@@ -179,7 +179,7 @@ class TestPerspectives:
                 name=f"Dr. Test {i}",
                 role="Researcher",
                 affiliation="University",
-                description="Test description for analyst"
+                description="Test description for analyst validation testing"
             )
             for i in range(11)  # Exceeds max_length=10
         ]
@@ -279,7 +279,7 @@ class TestSchemaUtilities:
                 name=f"Dr. Test {i}",
                 role="Researcher",  # All same role
                 affiliation="MIT",  # All same affiliation
-                description="Test description"
+                description="Test expert specializing in comprehensive testing"
             )
             for i in range(3)
         ]
@@ -302,7 +302,7 @@ class TestSchemaUtilities:
             "name": "Dr. Test",
             "role": "Researcher",
             "affiliation": "University",
-            "description": "Test description for analyst"
+            "description": "Test description for analyst validation testing"
         }
         
         analyst = create_analyst_from_dict(data)
@@ -360,7 +360,7 @@ class TestSchemaEdgeCases:
             name="Dr. 陈伟",  # Chinese characters
             role="研究员",
             affiliation="北京大学",
-            description="专注于人工智能研究和机器学习应用"
+            description="专注于人工智能研究和机器学习应用 - AI research specialist"
         )
         
         assert analyst.name == "Dr. 陈伟"
