@@ -19,12 +19,14 @@ jobs:
       with:
         fetch-depth: 0
     
-    - name: Check PR title
+    - name: Check PR title format
       run: |
         PR_TITLE="${{ github.event.pull_request.title }}"
-        
+
+        PATTERN="^(feat|fix|docs|style|refactor|perf|test|chore|ci|build|revert)(\\([^)]+\\))?: .+"
+
         # Check for conventional commit format
-        if [[ ! "$PR_TITLE" =~ ^(feat|fix|docs|style|refactor|perf|test|chore|ci|build|revert)(\(.+\))?: .+ ]]; then
+        if [[ ! "$PR_TITLE" =~ $PATTERN ]]; then
           echo "❌ PR title doesn't follow conventional commits format"
           echo "Expected: type(scope): description"
           echo "Examples:"
