@@ -372,21 +372,17 @@ EXAMPLE:
 The landscape of transformer architectures is evolving rapidly, driven by the dual imperatives of capability and efficiency. Sparse attention mechanisms, mixed-precision training, and novel deployment strategies are making powerful language models more accessible while maintaining performance. However, this progress comes with trade-offs: not all efficiency gains transfer across tasks, and some optimizations require careful tuning. As the field matures, the focus is shifting from pure scaling to intelligent design choices that balance multiple objectives. The next generation of language models will likely be defined not by size alone, but by architectural innovations that make them practical, sustainable, and widely deployable."""
 
 
-def format_section_instructions(
-    analyst_focus: str, 
-    context: str, 
-    detailed: bool = False
-) -> str:
+def format_section_instructions(analyst_focus: str, context: str, detailed: bool = False) -> str:
     """Format section writing instructions with analyst focus and context documents.
-    
+
     Args:
         analyst_focus: The specific focus area of the analyst
         context: The source documents to analyze and write about
         detailed: If True, use detailed instructions; otherwise use standard (default: False)
-    
+
     Returns:
         Formatted instruction string ready for the LLM
-    
+
     Example:
         >>> instructions = format_section_instructions(
         ...     analyst_focus="Machine learning optimization techniques",
@@ -394,55 +390,39 @@ def format_section_instructions(
         ... )
     """
     if detailed:
-        return SECTION_WRITER_DETAILED_INSTRUCTIONS.format(
-            focus=analyst_focus,
-            context=context
-        )
+        return SECTION_WRITER_DETAILED_INSTRUCTIONS.format(focus=analyst_focus, context=context)
     else:
-        return SECTION_WRITER_INSTRUCTIONS.format(
-            focus=analyst_focus,
-            context=context
-        )
+        return SECTION_WRITER_INSTRUCTIONS.format(focus=analyst_focus, context=context)
 
 
 def format_report_instructions(topic: str, context: str, detailed: bool = False) -> str:
     """Format report synthesis instructions.
-    
+
     Args:
         topic: The overall topic of the report
         context: The analyst memos to synthesize
         detailed: If True, use detailed instructions (default: False)
-    
+
     Returns:
         Formatted instruction string
     """
     if detailed:
-        return REPORT_WRITER_DETAILED_INSTRUCTIONS.format(
-            topic=topic,
-            context=context
-        )
+        return REPORT_WRITER_DETAILED_INSTRUCTIONS.format(topic=topic, context=context)
     else:
-        return REPORT_WRITER_INSTRUCTIONS.format(
-            topic=topic,
-            context=context
-        )
+        return REPORT_WRITER_INSTRUCTIONS.format(topic=topic, context=context)
 
 
-def format_introduction_instructions(
-    topic: str,
-    sections: str,
-    detailed: bool = False
-) -> str:
+def format_introduction_instructions(topic: str, sections: str, detailed: bool = False) -> str:
     """Format introduction writing instructions.
-    
+
     Args:
         topic: The overall topic of the report
         sections: String representation of all report sections
         detailed: If True, use detailed instructions (default: False)
-    
+
     Returns:
         Formatted instruction string
-    
+
     Example:
         >>> instructions = format_introduction_instructions(
         ...     topic="Machine Learning in Healthcare",
@@ -451,31 +431,23 @@ def format_introduction_instructions(
     """
     if detailed:
         return INTRODUCTION_DETAILED_INSTRUCTIONS.format(
-            topic=topic,
-            formatted_str_sections=sections
+            topic=topic, formatted_str_sections=sections
         )
     else:
-        return INTRO_CONCLUSION_INSTRUCTIONS.format(
-            topic=topic,
-            formatted_str_sections=sections
-        )
+        return INTRO_CONCLUSION_INSTRUCTIONS.format(topic=topic, formatted_str_sections=sections)
 
 
-def format_conclusion_instructions(
-    topic: str,
-    sections: str,
-    detailed: bool = False
-) -> str:
+def format_conclusion_instructions(topic: str, sections: str, detailed: bool = False) -> str:
     """Format conclusion writing instructions.
-    
+
     Args:
         topic: The overall topic of the report
         sections: String representation of all report sections
         detailed: If True, use detailed instructions (default: False)
-    
+
     Returns:
         Formatted instruction string
-    
+
     Example:
         >>> instructions = format_conclusion_instructions(
         ...     topic="Machine Learning in Healthcare",
@@ -483,12 +455,6 @@ def format_conclusion_instructions(
         ... )
     """
     if detailed:
-        return CONCLUSION_DETAILED_INSTRUCTIONS.format(
-            topic=topic,
-            formatted_str_sections=sections
-        )
+        return CONCLUSION_DETAILED_INSTRUCTIONS.format(topic=topic, formatted_str_sections=sections)
     else:
-        return INTRO_CONCLUSION_INSTRUCTIONS.format(
-            topic=topic,
-            formatted_str_sections=sections
-        )
+        return INTRO_CONCLUSION_INSTRUCTIONS.format(topic=topic, formatted_str_sections=sections)

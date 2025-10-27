@@ -204,19 +204,16 @@ QUERY OPTIMIZATION GUIDELINES:
 Generate a single, optimized search query based on the conversation."""
 
 
-def format_question_instructions(
-    analyst_persona: str,
-    detailed: bool = False
-) -> str:
+def format_question_instructions(analyst_persona: str, detailed: bool = False) -> str:
     """Format question generation instructions for an analyst.
-    
+
     Args:
         analyst_persona: The analyst's persona string (from Analyst.persona property).
         detailed: If True, use more detailed instructions. Defaults to False.
-        
+
     Returns:
         Formatted instruction string for question generation.
-        
+
     Example:
         >>> from research_assistant.core.schemas import Analyst
         >>> analyst = Analyst(name="Dr. Smith", role="Researcher",
@@ -224,28 +221,23 @@ def format_question_instructions(
         >>> instructions = format_question_instructions(analyst.persona)
     """
     template = (
-        QUESTION_GENERATION_DETAILED_INSTRUCTIONS if detailed
-        else QUESTION_GENERATION_INSTRUCTIONS
+        QUESTION_GENERATION_DETAILED_INSTRUCTIONS if detailed else QUESTION_GENERATION_INSTRUCTIONS
     )
-    
+
     return template.format(goals=analyst_persona)
 
 
-def format_answer_instructions(
-    analyst_persona: str,
-    context: str,
-    detailed: bool = False
-) -> str:
+def format_answer_instructions(analyst_persona: str, context: str, detailed: bool = False) -> str:
     """Format answer generation instructions for the expert.
-    
+
     Args:
         analyst_persona: The analyst's persona string for context.
         context: The retrieved context documents.
         detailed: If True, use more detailed instructions. Defaults to False.
-        
+
     Returns:
         Formatted instruction string for answer generation.
-        
+
     Example:
         >>> instructions = format_answer_instructions(
         ...     analyst_persona=analyst.persona,
@@ -253,48 +245,41 @@ def format_answer_instructions(
         ... )
     """
     template = (
-        ANSWER_GENERATION_DETAILED_INSTRUCTIONS if detailed
-        else ANSWER_GENERATION_INSTRUCTIONS
-    )
-    
-    return template.format(
-        goals=analyst_persona,
-        context=context
+        ANSWER_GENERATION_DETAILED_INSTRUCTIONS if detailed else ANSWER_GENERATION_INSTRUCTIONS
     )
 
+    return template.format(goals=analyst_persona, context=context)
 
-def get_search_instructions_as_system_message(
-    detailed: bool = False
-) -> SystemMessage:
+
+def get_search_instructions_as_system_message(detailed: bool = False) -> SystemMessage:
     """Get search query generation instructions as a SystemMessage.
-    
+
     Args:
         detailed: If True, use more detailed instructions. Defaults to False.
-        
+
     Returns:
         SystemMessage containing search query instructions.
-        
+
     Example:
         >>> search_msg = get_search_instructions_as_system_message()
         >>> # Use in LLM call
     """
     content = (
-        SEARCH_QUERY_DETAILED_INSTRUCTIONS if detailed
-        else SEARCH_QUERY_GENERATION_INSTRUCTIONS
+        SEARCH_QUERY_DETAILED_INSTRUCTIONS if detailed else SEARCH_QUERY_GENERATION_INSTRUCTIONS
     )
-    
+
     return SystemMessage(content=content)
 
 
 def format_context_from_documents(documents: List[dict]) -> str:
     """Format retrieved documents into context string for expert answers.
-    
+
     Args:
         documents: List of document dictionaries with 'url'/'source' and 'content'.
-        
+
     Returns:
         Formatted context string with document separators.
-        
+
     Example:
         >>> docs = [
         ...     {"url": "https://example.com", "content": "Document text..."},
@@ -303,13 +288,11 @@ def format_context_from_documents(documents: List[dict]) -> str:
         >>> context = format_context_from_documents(docs)
     """
     formatted_docs = []
-    
+
     for doc in documents:
         # Handle web sources
         if "url" in doc:
-            formatted_docs.append(
-                f'<Document href="{doc["url"]}"/>\n{doc["content"]}\n</Document>'
-            )
+            formatted_docs.append(f'<Document href="{doc["url"]}"/>\n{doc["content"]}\n</Document>')
         # Handle file sources
         elif "source" in doc:
             page_info = f' page="{doc.get("page", "")}"' if "page" in doc else ""
@@ -320,20 +303,20 @@ def format_context_from_documents(documents: List[dict]) -> str:
         # Handle plain text
         else:
             formatted_docs.append(f'<Document>\n{doc.get("content", "")}\n</Document>')
-    
+
     return "\n\n---\n\n".join(formatted_docs)
 
 
 # Interview conclusion detection
 def is_interview_complete(message_content: str) -> bool:
     """Check if a message indicates interview completion.
-    
+
     Args:
         message_content: The content of the analyst's message.
-        
+
     Returns:
         True if the message signals interview completion, False otherwise.
-        
+
     Example:
         >>> is_complete = is_interview_complete("Thank you so much for your help!")
         >>> if is_complete:
@@ -346,10 +329,10 @@ def is_interview_complete(message_content: str) -> bool:
 # Guidelines for interview quality
 def get_interview_quality_guidelines() -> str:
     """Get guidelines for conducting high-quality interviews.
-    
+
     Returns:
         String containing interview quality guidelines.
-        
+
     Example:
         >>> guidelines = get_interview_quality_guidelines()
         >>> # Use for evaluation or training
@@ -390,10 +373,10 @@ SIGNS OF A POOR INTERVIEW:
 
 def get_citation_examples() -> str:
     """Get examples of proper citation formatting.
-    
+
     Returns:
         String containing citation examples and best practices.
-        
+
     Example:
         >>> examples = get_citation_examples()
         >>> # Include in expert instructions

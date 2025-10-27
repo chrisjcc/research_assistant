@@ -109,23 +109,20 @@ ANALYST_CREATION_NO_FEEDBACK = """You are tasked with creating a set of AI analy
 
 
 def format_analyst_instructions(
-    topic: str,
-    max_analysts: int,
-    human_feedback: Optional[str] = None,
-    detailed: bool = False
+    topic: str, max_analysts: int, human_feedback: Optional[str] = None, detailed: bool = False
 ) -> str:
     """Format analyst creation instructions with provided parameters.
-    
+
     Args:
         topic: The research topic for analyst creation.
         max_analysts: Maximum number of analysts to create.
         human_feedback: Optional human feedback for analyst refinement.
             If None or empty, indicates initial creation without feedback.
         detailed: If True, use more detailed instructions. Defaults to False.
-        
+
     Returns:
         Formatted instruction string ready for LLM consumption.
-        
+
     Example:
         >>> instructions = format_analyst_instructions(
         ...     topic="Quantum Computing",
@@ -136,43 +133,35 @@ def format_analyst_instructions(
     # Clean and prepare feedback
     feedback = human_feedback if human_feedback else ""
     feedback = feedback.strip()
-    
+
     # If no feedback provided, use simplified template
     if not feedback:
         feedback = "No specific feedback provided. Use your best judgment to create diverse, high-quality analyst personas."
-    
+
     # Choose template based on detailed flag
     if detailed:
         template = ANALYST_CREATION_DETAILED_INSTRUCTIONS
     else:
         template = ANALYST_CREATION_INSTRUCTIONS
-    
+
     # Format and return
-    return template.format(
-        topic=topic,
-        max_analysts=max_analysts,
-        human_analyst_feedback=feedback
-    )
+    return template.format(topic=topic, max_analysts=max_analysts, human_analyst_feedback=feedback)
 
 
-def format_regeneration_instructions(
-    topic: str,
-    max_analysts: int,
-    human_feedback: str
-) -> str:
+def format_regeneration_instructions(topic: str, max_analysts: int, human_feedback: str) -> str:
     """Format instructions for regenerating analysts based on feedback.
-    
+
     This is used when human reviewers provide feedback on initially generated
     analysts and request modifications.
-    
+
     Args:
         topic: The research topic.
         max_analysts: Maximum number of analysts to create.
         human_feedback: Human feedback explaining desired changes.
-        
+
     Returns:
         Formatted regeneration instruction string.
-        
+
     Example:
         >>> instructions = format_regeneration_instructions(
         ...     topic="AI Ethics",
@@ -181,21 +170,19 @@ def format_regeneration_instructions(
         ... )
     """
     return ANALYST_REGENERATION_INSTRUCTIONS.format(
-        topic=topic,
-        max_analysts=max_analysts,
-        human_analyst_feedback=human_feedback
+        topic=topic, max_analysts=max_analysts, human_analyst_feedback=human_feedback
     )
 
 
 def get_analyst_quality_criteria() -> str:
     """Get the quality criteria for analyst creation.
-    
+
     Returns a description of what makes a good analyst persona. This can be
     used for evaluation or as additional context in prompts.
-    
+
     Returns:
         String describing quality criteria.
-        
+
     Example:
         >>> criteria = get_analyst_quality_criteria()
         >>> print(criteria)
@@ -231,13 +218,13 @@ def get_analyst_quality_criteria() -> str:
 
 def get_example_analysts() -> str:
     """Get example analyst personas for reference.
-    
+
     Provides concrete examples of well-crafted analyst personas that can serve
     as templates or reference points.
-    
+
     Returns:
         String containing example analyst definitions.
-        
+
     Example:
         >>> examples = get_example_analysts()
         >>> # Use in few-shot prompting
@@ -296,21 +283,18 @@ Provide:
 
 def format_analyst_validation_prompt(analysts_text: str, topic: str) -> str:
     """Format a prompt for validating generated analysts.
-    
+
     Args:
         analysts_text: Text description of generated analysts.
         topic: The research topic.
-        
+
     Returns:
         Formatted validation prompt.
-        
+
     Example:
         >>> validation = format_analyst_validation_prompt(
         ...     analysts_text=analyst_descriptions,
         ...     topic="Climate Change"
         ... )
     """
-    return ANALYST_VALIDATION_PROMPT.format(
-        analysts=analysts_text,
-        topic=topic
-    )
+    return ANALYST_VALIDATION_PROMPT.format(analysts=analysts_text, topic=topic)

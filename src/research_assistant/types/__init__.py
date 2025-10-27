@@ -81,7 +81,6 @@ __all__ = [
     "Comparable",
     "implements_protocol",
     "ensure_protocol",
-    
     # Type aliases
     "StateDict",
     "StateUpdate",
@@ -90,7 +89,6 @@ __all__ = [
     "AnalystList",
     "ConfigDict",
     "MetricsDict",
-    
     # Validation
     "validate_type",
     "validate_function_args",
