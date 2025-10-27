@@ -7,7 +7,7 @@ This package provides:
 - Pydantic model validation helpers
 
 Example:
-    >>> from research_assistant.types import (
+    >>> from research_assistant.type_utils import (
     ...     LLMProvider,
     ...     validate_type,
     ...     validate_function_args

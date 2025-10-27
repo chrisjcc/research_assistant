@@ -37,6 +37,7 @@ dev = [
     "black==25.9.0",
     "isort==7.0.0",
     "ruff==0.14.2",
+    "lxml==6.0.2",
 
     # Pre-commit hooks
     "pre-commit>=3.4.0",
