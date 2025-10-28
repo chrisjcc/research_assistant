@@ -3,7 +3,7 @@
 This module provides decorators and utilities for handling transient failures
 with intelligent retry strategies and circuit breaker patterns.
 
-Example:
+Examples:
     >>> from research_assistant.utils.retry import retry_with_backoff
     >>> @retry_with_backoff(max_retries=3)
     ... def unstable_api_call():
@@ -14,9 +14,10 @@ import logging
 import time
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from functools import wraps
+from typing import Any, ParamSpec, TypeVar, cast
 
 from .exceptions import (
     LLMAPIError,
@@ -27,6 +28,10 @@ from .exceptions import (
 )
 
 logger = logging.getLogger(__name__)
+
+# Type variables for generic decorator typing
+P = ParamSpec("P")
+T = TypeVar("T")
 
 
 class CircuitState(str, Enum):
@@ -99,7 +104,7 @@ class CircuitBreakerConfig:
     def record_failure(self) -> None:
         """Record a failed operation."""
         self._failure_count += 1
-        self._last_failure_time = datetime.now(datetime.UTC)
+        self._last_failure_time = datetime.now(timezone.utc)  # noqa: UP017
 
         if self._state == CircuitState.HALF_OPEN:
             self._state = CircuitState.OPEN
@@ -122,7 +127,9 @@ class CircuitBreakerConfig:
         if self._state == CircuitState.OPEN:
             # Check if timeout has passed
             if self._last_failure_time:
-                elapsed = (datetime.now(datetime.UTC) - self._last_failure_time).total_seconds()
+                elapsed = (
+                    datetime.now(timezone.utc) - self._last_failure_time  # noqa: UP017
+                ).total_seconds()  # noqa: UP017
                 if elapsed >= self.timeout:
                     self._state = CircuitState.HALF_OPEN
                     self._success_count = 0
@@ -168,7 +175,7 @@ def retry_with_backoff(
     exceptions: type[Exception] | tuple[type[Exception], ...] = Exception,
     on_retry: Callable[[Exception, int], None] | None = None,
     jitter: bool = True,
-):
+) -> Callable[[Callable[P, T]], Callable[P, T]]:
     """Decorator for retrying functions with exponential backoff.
 
     Args:
@@ -180,7 +187,7 @@ def retry_with_backoff(
         on_retry: Optional callback function called on each retry.
         jitter: Whether to add random jitter to delays.
 
-    Example:
+    Examples:
         >>> @retry_with_backoff(max_retries=3, initial_delay=1.0)
         ... def api_call():
         ...     return requests.get("https://api.example.com")
@@ -193,10 +200,10 @@ def retry_with_backoff(
         jitter=jitter,
     )
 
-    def decorator(func: Callable) -> Callable:
+    def decorator(func: Callable[P, T]) -> Callable[P, T]:
         @wraps(func)
-        def wrapper(*args, **kwargs):
-            last_exception = None
+        def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
+            last_exception: Exception | None = None
 
             for attempt in range(max_retries + 1):
                 try:
@@ -230,14 +237,18 @@ def retry_with_backoff(
                     time.sleep(delay)
 
             # Should never reach here, but just in case
-            raise last_exception
+            if last_exception is not None:
+                raise last_exception
+            raise RuntimeError("Unexpected state: no exception but no return value")
 
         return wrapper
 
     return decorator
 
 
-def retry_on_rate_limit(max_retries: int = 5, initial_delay: float = 2.0, max_delay: float = 120.0):
+def retry_on_rate_limit(
+    max_retries: int = 5, initial_delay: float = 2.0, max_delay: float = 120.0
+) -> Callable[[Callable[P, T]], Callable[P, T]]:
     """Decorator specifically for handling rate limit errors.
 
     Uses longer delays and more retries than standard retry.
@@ -247,13 +258,13 @@ def retry_on_rate_limit(max_retries: int = 5, initial_delay: float = 2.0, max_de
         initial_delay: Initial delay (should be longer for rate limits).
         max_delay: Maximum delay.
 
-    Example:
+    Examples:
         >>> @retry_on_rate_limit(max_retries=5)
         ... def api_call_with_quota():
         ...     return expensive_api_call()
     """
 
-    def on_rate_limit_retry(exception: Exception, _attempt: int):
+    def on_rate_limit_retry(exception: Exception, _attempt: int) -> None:
         if isinstance(exception, RateLimitError):
             retry_after = exception.details.get("retry_after_seconds")
             if retry_after:
@@ -272,7 +283,7 @@ def retry_on_rate_limit(max_retries: int = 5, initial_delay: float = 2.0, max_de
 
 def with_circuit_breaker(
     service: str, failure_threshold: int = 5, success_threshold: int = 2, timeout: float = 60.0
-):
+) -> Callable[[Callable[P, T]], Callable[P, T]]:
     """Decorator to add circuit breaker protection to a function.
 
     Args:
@@ -281,7 +292,7 @@ def with_circuit_breaker(
         success_threshold: Successes needed to close from half-open.
         timeout: Seconds before attempting half-open.
 
-    Example:
+    Examples:
         >>> @with_circuit_breaker("external_api")
         ... def call_external_api():
         ...     return api.get_data()
@@ -291,11 +302,11 @@ def with_circuit_breaker(
     )
     circuit = get_circuit_breaker(service, config)
 
-    def decorator(func: Callable) -> Callable:
+    def decorator(func: Callable[P, T]) -> Callable[P, T]:
         @wraps(func)
-        def wrapper(*args, **kwargs):
+        def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
             if not circuit.can_attempt():
-                raise Exception(
+                raise RuntimeError(
                     f"Circuit breaker is OPEN for {service}. "
                     f"Wait {circuit.timeout}s before retry."
                 )
@@ -314,23 +325,23 @@ def with_circuit_breaker(
     return decorator
 
 
-def with_timeout(seconds: float):
+def with_timeout(seconds: float) -> Callable[[Callable[P, T]], Callable[P, T]]:
     """Decorator to add timeout to function execution.
 
     Args:
         seconds: Timeout in seconds.
 
-    Example:
+    Examples:
         >>> @with_timeout(30.0)
         ... def slow_operation():
         ...     return process_data()
     """
     import signal
 
-    def decorator(func: Callable) -> Callable:
+    def decorator(func: Callable[P, T]) -> Callable[P, T]:
         @wraps(func)
-        def wrapper(*args, **kwargs):
-            def timeout_handler(_signum, _frame):
+        def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
+            def timeout_handler(_signum: int, _frame: Any) -> None:
                 raise TimeoutError(f"{func.__name__} timed out after {seconds}s")
 
             # Set the signal handler
@@ -353,7 +364,7 @@ def with_timeout(seconds: float):
 # Specialized retry decorators for common patterns
 
 
-def retry_llm_call(max_retries: int = 3):
+def retry_llm_call(max_retries: int = 3) -> Callable[[Callable[P, T]], Callable[P, T]]:
     """Retry decorator specifically for LLM API calls.
 
     Handles common LLM errors like timeouts and rate limits.
@@ -361,7 +372,7 @@ def retry_llm_call(max_retries: int = 3):
     Args:
         max_retries: Maximum retry attempts.
 
-    Example:
+    Examples:
         >>> @retry_llm_call(max_retries=3)
         ... def generate_text(prompt):
         ...     return llm.invoke(prompt)
@@ -375,7 +386,7 @@ def retry_llm_call(max_retries: int = 3):
     )
 
 
-def retry_search_call(max_retries: int = 3):
+def retry_search_call(max_retries: int = 3) -> Callable[[Callable[P, T]], Callable[P, T]]:
     """Retry decorator specifically for search operations.
 
     Handles search-specific errors.
@@ -383,7 +394,7 @@ def retry_search_call(max_retries: int = 3):
     Args:
         max_retries: Maximum retry attempts.
 
-    Example:
+    Examples:
         >>> @retry_search_call(max_retries=3)
         ... def search_web(query):
         ...     return search_api.query(query)
@@ -403,19 +414,19 @@ def retry_search_call(max_retries: int = 3):
 class FallbackHandler:
     """Handler for graceful degradation with fallback strategies.
 
-    Example:
+    Examples:
         >>> handler = FallbackHandler()
         >>> handler.add_strategy(primary_function)
         >>> handler.add_strategy(fallback_function)
         >>> result = handler.execute(*args)
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize fallback handler."""
-        self.strategies: list[Callable] = []
+        self.strategies: list[Callable[..., Any]] = []
         self.logger = logging.getLogger(__name__)
 
-    def add_strategy(self, func: Callable) -> None:
+    def add_strategy(self, func: Callable[..., Any]) -> None:
         """Add a fallback strategy.
 
         Args:
@@ -423,7 +434,7 @@ class FallbackHandler:
         """
         self.strategies.append(func)
 
-    def execute(self, *args, **kwargs):
+    def execute(self, *args: Any, **kwargs: Any) -> Any:
         """Execute with fallback strategies.
 
         Tries each strategy in order until one succeeds.
@@ -456,16 +467,16 @@ class FallbackHandler:
 
         # All strategies failed
         self.logger.error(f"All {len(self.strategies)} strategies failed")
-        raise Exception(f"All fallback strategies failed. Errors: {[str(e) for e in errors]}")
+        raise RuntimeError(f"All fallback strategies failed. Errors: {[str(e) for e in errors]}")
 
 
-def with_fallback(*fallback_funcs: Callable):
+def with_fallback(*fallback_funcs: Callable[..., T]) -> Callable[[Callable[P, T]], Callable[P, T]]:
     """Decorator to add fallback functions.
 
     Args:
         *fallback_funcs: Functions to try if primary fails.
 
-    Example:
+    Examples:
         >>> def fallback_search(query):
         ...     return cached_results(query)
         >>>
@@ -474,23 +485,29 @@ def with_fallback(*fallback_funcs: Callable):
         ...     return api_search(query)
     """
 
-    def decorator(primary_func: Callable) -> Callable:
+    def decorator(primary_func: Callable[P, T]) -> Callable[P, T]:
         @wraps(primary_func)
-        def wrapper(*args, **kwargs):
-            handler = FallbackHandler()
+        def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
+            handler: FallbackHandler = FallbackHandler()
             handler.add_strategy(primary_func)
 
             for fallback in fallback_funcs:
                 handler.add_strategy(fallback)
 
-            return handler.execute(*args, **kwargs)
+            return cast(T, handler.execute(*args, **kwargs))
 
         return wrapper
 
     return decorator
 
 
-def safe_execute(func: Callable, *args, default=None, log_errors: bool = True, **kwargs):
+def safe_execute(
+    func: Callable[..., T],
+    *args: Any,
+    default: T | None = None,
+    log_errors: bool = True,
+    **kwargs: Any,
+) -> T | None:
     """Safely execute a function with error handling.
 
     Args:
@@ -503,7 +520,7 @@ def safe_execute(func: Callable, *args, default=None, log_errors: bool = True, *
     Returns:
         Function result or default value on error.
 
-    Example:
+    Examples:
         >>> result = safe_execute(risky_operation, default=[])
     """
     try:
@@ -554,7 +571,7 @@ def get_retry_delay(attempt: int, config: RetryConfig | None = None) -> float:
     Returns:
         Delay in seconds.
 
-    Example:
+    Examples:
         >>> delay = get_retry_delay(2)
         >>> time.sleep(delay)
     """
@@ -570,7 +587,7 @@ def reset_circuit_breaker(service: str) -> None:
     Args:
         service: Service identifier.
 
-    Example:
+    Examples:
         >>> reset_circuit_breaker("external_api")
     """
     if service in _CIRCUIT_BREAKERS:
@@ -581,7 +598,7 @@ def reset_circuit_breaker(service: str) -> None:
         logger.info(f"Circuit breaker for {service} manually reset")
 
 
-def get_circuit_breaker_status(service: str) -> dict:
+def get_circuit_breaker_status(service: str) -> dict[str, Any]:
     """Get status of a circuit breaker.
 
     Args:
@@ -590,7 +607,7 @@ def get_circuit_breaker_status(service: str) -> dict:
     Returns:
         Dictionary with circuit breaker status.
 
-    Example:
+    Examples:
         >>> status = get_circuit_breaker_status("external_api")
         >>> print(status['state'])
     """
