@@ -19,12 +19,13 @@ import logging
 import logging.config
 import sys
 import time
+from collections.abc import Callable
 from contextlib import contextmanager
 from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from functools import wraps
 from pathlib import Path
-from typing import Any, Callable, Dict, Optional
+from typing import Any
 
 try:
     import structlog
@@ -35,7 +36,7 @@ except ImportError:
 
 
 # Global metrics storage
-_METRICS_STORE: Dict[str, Any] = {
+_METRICS_STORE: dict[str, Any] = {
     "api_calls": 0,
     "total_tokens": 0,
     "node_executions": {},
@@ -50,15 +51,15 @@ class ExecutionMetrics:
 
     node_name: str
     start_time: float = field(default_factory=time.time)
-    end_time: Optional[float] = None
-    duration: Optional[float] = None
+    end_time: float | None = None
+    duration: float | None = None
     success: bool = True
-    error: Optional[str] = None
+    error: str | None = None
     tokens_used: int = 0
     api_calls: int = 0
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
-    def complete(self, success: bool = True, error: Optional[str] = None) -> None:
+    def complete(self, success: bool = True, error: str | None = None) -> None:
         """Mark execution as complete.
 
         Args:
@@ -70,7 +71,7 @@ class ExecutionMetrics:
         self.success = success
         self.error = error
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary.
 
         Returns:
@@ -92,7 +93,7 @@ class StructuredFormatter(logging.Formatter):
             JSON-formatted log string.
         """
         log_data = {
-            "timestamp": datetime.utcfromtimestamp(record.created).isoformat(),
+            "timestamp": datetime.now(datetime.UTC).isoformat(),
             "level": record.levelname,
             "logger": record.name,
             "message": record.getMessage(),
@@ -169,10 +170,10 @@ class ColoredFormatter(logging.Formatter):
 def setup_logging(
     level: str = "INFO",
     structured: bool = False,
-    log_file: Optional[str] = None,
+    log_file: str | None = None,
     console: bool = True,
     colored: bool = True,
-    module_levels: Optional[Dict[str, str]] = None,
+    module_levels: dict[str, str] | None = None,
 ) -> None:
     """Setup logging configuration.
 
@@ -359,7 +360,11 @@ def log_execution(
 
         # Track error
         _METRICS_STORE["errors"].append(
-            {"node": node_name, "error": str(e), "timestamp": datetime.utcnow().isoformat()}
+            {
+                "node": node_name,
+                "error": str(e),
+                "timestamp": datetime.now(datetime.UTC).isoformat(),
+            }
         )
 
         raise
@@ -417,7 +422,7 @@ def log_operation(logger: logging.Logger, operation: str, **context):
 # Decorators for automatic logging
 
 
-def log_function_call(logger: Optional[logging.Logger] = None):
+def log_function_call(logger: logging.Logger | None = None):
     """Decorator to log function calls with timing.
 
     Args:
@@ -482,7 +487,7 @@ def log_function_call(logger: Optional[logging.Logger] = None):
     return decorator
 
 
-def log_performance(logger: Optional[logging.Logger] = None, threshold_seconds: float = 1.0):
+def log_performance(logger: logging.Logger | None = None, threshold_seconds: float = 1.0):
     """Decorator to log slow function calls.
 
     Only logs if execution time exceeds threshold.
@@ -528,7 +533,7 @@ def log_performance(logger: Optional[logging.Logger] = None, threshold_seconds: 
 # Metrics functions
 
 
-def get_metrics() -> Dict[str, Any]:
+def get_metrics() -> dict[str, Any]:
     """Get current metrics snapshot.
 
     Returns:
@@ -602,7 +607,7 @@ def log_metrics_summary(logger: logging.Logger) -> None:
             )
 
 
-def configure_from_config(config: Dict[str, Any]) -> None:
+def configure_from_config(config: dict[str, Any]) -> None:
     """Configure logging from config dictionary.
 
     Args:

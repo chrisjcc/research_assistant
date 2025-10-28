@@ -12,11 +12,11 @@ Example:
 
 import logging
 import time
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime
 from enum import Enum
 from functools import wraps
-from typing import Callable, Optional, Tuple, Type, Union
 
 from .exceptions import (
     LLMAPIError,
@@ -82,7 +82,7 @@ class CircuitBreakerConfig:
     # Tracking
     _failure_count: int = field(default=0, init=False)
     _success_count: int = field(default=0, init=False)
-    _last_failure_time: Optional[datetime] = field(default=None, init=False)
+    _last_failure_time: datetime | None = field(default=None, init=False)
     _state: CircuitState = field(default=CircuitState.CLOSED, init=False)
 
     def record_success(self) -> None:
@@ -99,7 +99,7 @@ class CircuitBreakerConfig:
     def record_failure(self) -> None:
         """Record a failed operation."""
         self._failure_count += 1
-        self._last_failure_time = datetime.now()
+        self._last_failure_time = datetime.now(datetime.UTC)
 
         if self._state == CircuitState.HALF_OPEN:
             self._state = CircuitState.OPEN
@@ -122,7 +122,7 @@ class CircuitBreakerConfig:
         if self._state == CircuitState.OPEN:
             # Check if timeout has passed
             if self._last_failure_time:
-                elapsed = (datetime.now() - self._last_failure_time).total_seconds()
+                elapsed = (datetime.now(datetime.UTC) - self._last_failure_time).total_seconds()
                 if elapsed >= self.timeout:
                     self._state = CircuitState.HALF_OPEN
                     self._success_count = 0
@@ -144,7 +144,7 @@ _CIRCUIT_BREAKERS: dict[str, CircuitBreakerConfig] = {}
 
 
 def get_circuit_breaker(
-    service: str, config: Optional[CircuitBreakerConfig] = None
+    service: str, config: CircuitBreakerConfig | None = None
 ) -> CircuitBreakerConfig:
     """Get or create circuit breaker for a service.
 
@@ -165,8 +165,8 @@ def retry_with_backoff(
     initial_delay: float = 1.0,
     max_delay: float = 60.0,
     backoff_factor: float = 2.0,
-    exceptions: Union[Type[Exception], Tuple[Type[Exception], ...]] = Exception,
-    on_retry: Optional[Callable[[Exception, int], None]] = None,
+    exceptions: type[Exception] | tuple[type[Exception], ...] = Exception,
+    on_retry: Callable[[Exception, int], None] | None = None,
     jitter: bool = True,
 ):
     """Decorator for retrying functions with exponential backoff.
@@ -253,7 +253,7 @@ def retry_on_rate_limit(max_retries: int = 5, initial_delay: float = 2.0, max_de
         ...     return expensive_api_call()
     """
 
-    def on_rate_limit_retry(exception: Exception, attempt: int):
+    def on_rate_limit_retry(exception: Exception, _attempt: int):
         if isinstance(exception, RateLimitError):
             retry_after = exception.details.get("retry_after_seconds")
             if retry_after:
@@ -305,7 +305,7 @@ def with_circuit_breaker(
                 circuit.record_success()
                 return result
 
-            except Exception as e:
+            except Exception:
                 circuit.record_failure()
                 raise
 
@@ -330,7 +330,7 @@ def with_timeout(seconds: float):
     def decorator(func: Callable) -> Callable:
         @wraps(func)
         def wrapper(*args, **kwargs):
-            def timeout_handler(signum, frame):
+            def timeout_handler(_signum, _frame):
                 raise TimeoutError(f"{func.__name__} timed out after {seconds}s")
 
             # Set the signal handler
@@ -544,7 +544,7 @@ def should_retry(exception: Exception) -> bool:
     return isinstance(exception, transient_errors)
 
 
-def get_retry_delay(attempt: int, config: Optional[RetryConfig] = None) -> float:
+def get_retry_delay(attempt: int, config: RetryConfig | None = None) -> float:
     """Calculate retry delay for an attempt.
 
     Args:

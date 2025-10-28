@@ -14,7 +14,9 @@ Example:
     >>> llm: LLMProvider = MyLLM()
 """
 
-from typing import Any, Dict, List, Optional, Protocol, runtime_checkable
+from __future__ import annotations
+
+from typing import Any, Protocol, TypeAlias, runtime_checkable
 
 from langchain_core.messages import BaseMessage
 
@@ -26,7 +28,7 @@ class LLMProvider(Protocol):
     Any class that implements these methods can be used as an LLM provider.
     """
 
-    def invoke(self, messages: List[BaseMessage]) -> Any:
+    def invoke(self, messages: list[BaseMessage]) -> Any:
         """Invoke the LLM with messages.
 
         Args:
@@ -37,7 +39,7 @@ class LLMProvider(Protocol):
         """
         ...
 
-    def with_structured_output(self, schema: type) -> "LLMProvider":
+    def with_structured_output(self, schema: type) -> LLMProvider:
         """Configure LLM for structured output.
 
         Args:
@@ -53,7 +55,7 @@ class LLMProvider(Protocol):
 class SearchProvider(Protocol):
     """Protocol for search providers."""
 
-    def search(self, query: str) -> List[Dict[str, Any]]:
+    def search(self, query: str) -> list[dict[str, Any]]:
         """Execute search query.
 
         Args:
@@ -64,7 +66,7 @@ class SearchProvider(Protocol):
         """
         ...
 
-    def format_results(self, results: List[Dict[str, Any]]) -> str:
+    def format_results(self, results: list[dict[str, Any]]) -> str:
         """Format search results for LLM context.
 
         Args:
@@ -80,7 +82,7 @@ class SearchProvider(Protocol):
 class CacheProvider(Protocol):
     """Protocol for cache providers."""
 
-    def get(self, key: str) -> Optional[Any]:
+    def get(self, key: str) -> Any | None:
         """Get value from cache.
 
         Args:
@@ -91,7 +93,7 @@ class CacheProvider(Protocol):
         """
         ...
 
-    def set(self, key: str, value: Any, ttl: Optional[int] = None) -> None:
+    def set(self, key: str, value: Any, ttl: int | None = None) -> None:
         """Set value in cache.
 
         Args:
@@ -118,7 +120,7 @@ class CacheProvider(Protocol):
 class StateValidator(Protocol):
     """Protocol for state validators."""
 
-    def validate(self, state: Dict[str, Any]) -> bool:
+    def validate(self, state: dict[str, Any]) -> bool:
         """Validate state structure and content.
 
         Args:
@@ -129,7 +131,7 @@ class StateValidator(Protocol):
         """
         ...
 
-    def get_errors(self) -> List[str]:
+    def get_errors(self) -> list[str]:
         """Get validation errors from last validation.
 
         Returns:
@@ -142,7 +144,7 @@ class StateValidator(Protocol):
 class NodeExecutor(Protocol):
     """Protocol for graph node executors."""
 
-    def __call__(self, state: Dict[str, Any]) -> Dict[str, Any]:
+    def __call__(self, state: dict[str, Any]) -> dict[str, Any]:
         """Execute node logic.
 
         Args:
@@ -174,7 +176,7 @@ class PromptFormatter(Protocol):
 class MetricsCollector(Protocol):
     """Protocol for metrics collectors."""
 
-    def record_metric(self, name: str, value: Any, tags: Optional[Dict[str, str]] = None) -> None:
+    def record_metric(self, name: str, value: Any, tags: dict[str, str] | None = None) -> None:
         """Record a metric.
 
         Args:
@@ -184,7 +186,7 @@ class MetricsCollector(Protocol):
         """
         ...
 
-    def get_metrics(self) -> Dict[str, Any]:
+    def get_metrics(self) -> dict[str, Any]:
         """Get all collected metrics.
 
         Returns:
@@ -197,7 +199,7 @@ class MetricsCollector(Protocol):
 class Checkpointer(Protocol):
     """Protocol for state checkpointing."""
 
-    def save(self, checkpoint_id: str, state: Dict[str, Any]) -> None:
+    def save(self, checkpoint_id: str, state: dict[str, Any]) -> None:
         """Save a checkpoint.
 
         Args:
@@ -206,7 +208,7 @@ class Checkpointer(Protocol):
         """
         ...
 
-    def load(self, checkpoint_id: str) -> Optional[Dict[str, Any]]:
+    def load(self, checkpoint_id: str) -> dict[str, Any] | None:
         """Load a checkpoint.
 
         Args:
@@ -217,7 +219,7 @@ class Checkpointer(Protocol):
         """
         ...
 
-    def list_checkpoints(self) -> List[str]:
+    def list_checkpoints(self) -> list[str]:
         """List all available checkpoints.
 
         Returns:
@@ -230,7 +232,7 @@ class Checkpointer(Protocol):
 class OutputFormatter(Protocol):
     """Protocol for output formatters."""
 
-    def format(self, content: str, metadata: Optional[Dict[str, Any]] = None) -> str:
+    def format(self, content: str, metadata: dict[str, Any] | None = None) -> str:
         """Format content for output.
 
         Args:
@@ -256,7 +258,7 @@ class OutputFormatter(Protocol):
 class ErrorHandler(Protocol):
     """Protocol for error handlers."""
 
-    def handle_error(self, error: Exception, context: Optional[Dict[str, Any]] = None) -> Any:
+    def handle_error(self, error: Exception, context: dict[str, Any] | None = None) -> Any:
         """Handle an error.
 
         Args:
@@ -316,24 +318,23 @@ class ConfigProvider(Protocol):
 
 # Type aliases for common patterns
 
-from typing import TypeAlias
 
 # State types
-StateDict: TypeAlias = Dict[str, Any]
-StateUpdate: TypeAlias = Dict[str, Any]
+StateDict: TypeAlias = dict[str, Any]
+StateUpdate: TypeAlias = dict[str, Any]
 
 # Message types
-MessageList: TypeAlias = List[BaseMessage]
+MessageList: TypeAlias = list[BaseMessage]
 
 # Result types
-SearchResults: TypeAlias = List[Dict[str, Any]]
-AnalystList: TypeAlias = List[Any]  # List[Analyst] but avoiding circular import
+SearchResults: TypeAlias = list[dict[str, Any]]
+AnalystList: TypeAlias = list[Any]  # list[Analyst] but avoiding circular import
 
 # Configuration types
-ConfigDict: TypeAlias = Dict[str, Any]
+ConfigDict: TypeAlias = dict[str, Any]
 
 # Metrics types
-MetricsDict: TypeAlias = Dict[str, Any]
+MetricsDict: TypeAlias = dict[str, Any]
 
 
 # Generic protocols for common patterns
@@ -343,7 +344,7 @@ MetricsDict: TypeAlias = Dict[str, Any]
 class Serializable(Protocol):
     """Protocol for objects that can be serialized."""
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary.
 
         Returns:
@@ -352,7 +353,7 @@ class Serializable(Protocol):
         ...
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "Serializable":
+    def from_dict(cls, data: dict[str, Any]) -> Serializable:
         """Create instance from dictionary.
 
         Args:
@@ -376,7 +377,7 @@ class Validatable(Protocol):
         """
         ...
 
-    def get_validation_errors(self) -> List[str]:
+    def get_validation_errors(self) -> list[str]:
         """Get validation errors.
 
         Returns:

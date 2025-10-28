@@ -11,13 +11,14 @@ Example:
 """
 
 import inspect
+from collections.abc import Callable
 from functools import wraps
-from typing import Any, Callable, Dict, List, Optional, Type, Union, get_args, get_origin
+from typing import Any, Union, get_args, get_origin
 
-from pydantic import BaseModel, ValidationError, field_validator
+from pydantic import BaseModel, ValidationError
 
 
-def validate_type(value: Any, expected_type: Type, param_name: str = "value") -> bool:
+def validate_type(value: Any, expected_type: type, param_name: str = "value") -> bool:
     """Validate that a value matches an expected type.
 
     Args:
@@ -120,7 +121,7 @@ def validate_function_args(func: Callable) -> Callable:
             try:
                 validate_type(param_value, param.annotation, param_name)
             except TypeError as e:
-                raise TypeError(f"Invalid argument in {func.__name__}(): {str(e)}")
+                raise TypeError(f"Invalid argument in {func.__name__}(): {str(e)}") from e
 
         return func(*args, **kwargs)
 
@@ -139,11 +140,11 @@ class TypeValidator:
 
     def __init__(self):
         """Initialize type validator."""
-        self.rules: Dict[str, Callable[[Any], bool]] = {}
-        self.error_messages: Dict[str, str] = {}
+        self.rules: dict[str, Callable[[Any], bool]] = {}
+        self.error_messages: dict[str, str] = {}
 
     def add_rule(
-        self, name: str, validator: Callable[[Any], bool], error_message: Optional[str] = None
+        self, name: str, validator: Callable[[Any], bool], error_message: str | None = None
     ) -> None:
         """Add a validation rule.
 
@@ -207,7 +208,7 @@ def validate_non_empty_string(value: str, param_name: str = "value") -> bool:
     return True
 
 
-def validate_positive_number(value: Union[int, float], param_name: str = "value") -> bool:
+def validate_positive_number(value: int | float, param_name: str = "value") -> bool:
     """Validate that a number is positive.
 
     Args:
@@ -230,9 +231,9 @@ def validate_positive_number(value: Union[int, float], param_name: str = "value"
 
 
 def validate_range(
-    value: Union[int, float],
-    min_val: Optional[Union[int, float]] = None,
-    max_val: Optional[Union[int, float]] = None,
+    value: int | float,
+    min_val: int | float | None = None,
+    max_val: int | float | None = None,
     param_name: str = "value",
 ) -> bool:
     """Validate that a number is within a range.
@@ -262,9 +263,9 @@ def validate_range(
 
 
 def validate_list_length(
-    value: List[Any],
-    min_length: Optional[int] = None,
-    max_length: Optional[int] = None,
+    value: list[Any],
+    min_length: int | None = None,
+    max_length: int | None = None,
     param_name: str = "value",
 ) -> bool:
     """Validate list length.
@@ -296,9 +297,9 @@ def validate_list_length(
 
 
 def validate_dict_keys(
-    value: Dict[str, Any],
-    required_keys: Optional[List[str]] = None,
-    optional_keys: Optional[List[str]] = None,
+    value: dict[str, Any],
+    required_keys: list[str] | None = None,
+    optional_keys: list[str] | None = None,
     param_name: str = "value",
 ) -> bool:
     """Validate dictionary keys.
@@ -337,7 +338,10 @@ def validate_dict_keys(
 # Pydantic integration
 
 
-def validate_pydantic_model(data: Dict[str, Any], model_class: Type[BaseModel]) -> BaseModel:
+def validate_pydantic_model(
+    data: dict[str, Any],
+    model_class: type[BaseModel],
+) -> BaseModel:
     """Validate data against a Pydantic model.
 
     Args:
@@ -360,7 +364,7 @@ def validate_pydantic_model(data: Dict[str, Any], model_class: Type[BaseModel]) 
     except ValidationError as e:
         # Re-raise with more context
         errors = e.errors()
-        error_msgs = [f"{'.'.join(str(loc) for loc in err['loc'])}: {err['msg']}" for err in errors]
         raise ValidationError.from_exception_data(
-            title=f"Validation error for {model_class.__name__}", line_errors=errors
+            title=f"Validation error for {model_class.__name__}",
+            line_errors=errors,
         ) from e

@@ -11,7 +11,7 @@ Example:
 """
 
 import logging
-from typing import Any, Dict, Optional
+from typing import Any
 
 from langchain_openai import ChatOpenAI
 from langgraph.graph import END, START, StateGraph
@@ -32,9 +32,9 @@ logger = logging.getLogger(__name__)
 
 def search_web_node(
     state: InterviewState,
-    search_tool: Optional[WebSearchTool] = None,
-    query_generator: Optional[SearchQueryGenerator] = None,
-) -> Dict[str, Any]:
+    search_tool: WebSearchTool | None = None,
+    query_generator: SearchQueryGenerator | None = None,
+) -> dict[str, Any]:
     """Node to execute web search based on conversation context.
 
     This node generates a search query from the conversation and retrieves
@@ -96,9 +96,9 @@ def search_web_node(
 
 def search_wikipedia_node(
     state: InterviewState,
-    search_tool: Optional[WikipediaSearchTool] = None,
-    query_generator: Optional[SearchQueryGenerator] = None,
-) -> Dict[str, Any]:
+    search_tool: WikipediaSearchTool | None = None,
+    query_generator: SearchQueryGenerator | None = None,
+) -> dict[str, Any]:
     """Node to execute Wikipedia search based on conversation context.
 
     This node generates a search query from the conversation and retrieves
@@ -159,10 +159,10 @@ def search_wikipedia_node(
 
 
 def build_interview_graph(
-    llm: Optional[ChatOpenAI] = None,
-    web_search_tool: Optional[WebSearchTool] = None,
-    wiki_search_tool: Optional[WikipediaSearchTool] = None,
-    query_generator: Optional[SearchQueryGenerator] = None,
+    llm: ChatOpenAI | None = None,
+    web_search_tool: WebSearchTool | None = None,
+    wiki_search_tool: WikipediaSearchTool | None = None,
+    query_generator: SearchQueryGenerator | None = None,
     detailed_prompts: bool = False,
 ) -> StateGraph:
     """Build the interview subgraph.
@@ -205,24 +205,24 @@ def build_interview_graph(
     builder = StateGraph(InterviewState)
 
     # Define node functions with partial application for injected dependencies
-    def ask_question_node(state: InterviewState) -> Dict[str, Any]:
+    def ask_question_node(state: InterviewState) -> dict[str, Any]:
         return generate_question(state, llm=llm, detailed_prompts=detailed_prompts)
 
-    def search_web_wrapper(state: InterviewState) -> Dict[str, Any]:
+    def search_web_wrapper(state: InterviewState) -> dict[str, Any]:
         return search_web_node(state, search_tool=web_search_tool, query_generator=query_generator)
 
-    def search_wikipedia_wrapper(state: InterviewState) -> Dict[str, Any]:
+    def search_wikipedia_wrapper(state: InterviewState) -> dict[str, Any]:
         return search_wikipedia_node(
             state, search_tool=wiki_search_tool, query_generator=query_generator
         )
 
-    def answer_question_node(state: InterviewState) -> Dict[str, Any]:
+    def answer_question_node(state: InterviewState) -> dict[str, Any]:
         return generate_answer(state, llm=llm, detailed_prompts=detailed_prompts)
 
-    def save_interview_node(state: InterviewState) -> Dict[str, Any]:
+    def save_interview_node(state: InterviewState) -> dict[str, Any]:
         return save_interview(state)
 
-    def write_section_node(state: InterviewState) -> Dict[str, Any]:
+    def write_section_node(state: InterviewState) -> dict[str, Any]:
         return write_section(state, llm=llm, detailed_prompts=detailed_prompts)
 
     # Add nodes
@@ -269,7 +269,7 @@ def create_interview_config(
     detailed_prompts: bool = False,
     llm_model: str = "gpt-4o",
     llm_temperature: float = 0.0,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Create configuration for interview graph.
 
     Args:
@@ -297,7 +297,7 @@ def create_interview_config(
     }
 
 
-def get_interview_graph_info() -> Dict[str, Any]:
+def get_interview_graph_info() -> dict[str, Any]:
     """Get information about the interview graph structure.
 
     Returns:
@@ -329,7 +329,7 @@ def get_interview_graph_info() -> Dict[str, Any]:
 
 # Visualization helper
 def visualize_interview_graph(
-    graph: Optional[StateGraph] = None, output_path: str = "interview_graph.png"
+    graph: StateGraph | None = None, output_path: str = "interview_graph.png"
 ) -> None:
     """Visualize the interview graph structure.
 
@@ -341,6 +341,8 @@ def visualize_interview_graph(
         >>> visualize_interview_graph(output_path="my_graph.png")
     """
     try:
+        from contextlib import suppress
+
         from IPython.display import Image, display
 
         if graph is None:
@@ -350,17 +352,14 @@ def visualize_interview_graph(
         img_data = graph.get_graph().draw_mermaid_png()
 
         # Save to file
-        with open(output_path, "wb") as f:
+        with output_path.open("wb") as f:
             f.write(img_data)
 
         logger.info(f"Graph visualization saved to {output_path}")
 
         # Display in notebook if available
-        try:
+        with suppress(Exception):
             display(Image(img_data))
-        except:
-            pass
-
     except ImportError:
         logger.warning("IPython not available, skipping visualization")
     except Exception as e:

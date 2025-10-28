@@ -12,15 +12,9 @@ Example:
 """
 
 import logging
-from typing import Any, Dict, List, Literal, Optional
+from typing import Any, Literal
 
-from langchain_core.messages import (
-    AIMessage,
-    BaseMessage,
-    HumanMessage,
-    SystemMessage,
-    get_buffer_string,
-)
+from langchain_core.messages import AIMessage, HumanMessage, SystemMessage, get_buffer_string
 from langchain_openai import ChatOpenAI
 
 from ..core.schemas import Analyst
@@ -42,8 +36,8 @@ class InterviewError(Exception):
 
 
 def generate_question(
-    state: InterviewState, llm: Optional[ChatOpenAI] = None, detailed_prompts: bool = False
-) -> Dict[str, Any]:
+    state: InterviewState, llm: ChatOpenAI | None = None, detailed_prompts: bool = False
+) -> dict[str, Any]:
     """Generate the next interview question from the analyst.
 
     This node generates a question based on the analyst's persona and the
@@ -124,8 +118,8 @@ def generate_question(
 
 
 def generate_answer(
-    state: InterviewState, llm: Optional[ChatOpenAI] = None, detailed_prompts: bool = False
-) -> Dict[str, Any]:
+    state: InterviewState, llm: ChatOpenAI | None = None, detailed_prompts: bool = False
+) -> dict[str, Any]:
     """Generate expert answer based on retrieved context.
 
     This node generates an answer from the expert persona, using only
@@ -210,7 +204,7 @@ def generate_answer(
         raise InterviewError(f"Answer generation failed: {str(e)}") from e
 
 
-def save_interview(state: InterviewState) -> Dict[str, Any]:
+def save_interview(state: InterviewState) -> dict[str, Any]:
     """Save the interview transcript to state.
 
     Converts the message history into a formatted string transcript and
@@ -310,12 +304,12 @@ def route_messages(
     if num_responses < max_num_turns:
         logger.debug("Continuing interview")
         return "ask_question"
-    else:
-        logger.info(f"Max turns ({max_num_turns}) reached")
-        return "save_interview"
+
+    logger.info(f"Max turns ({max_num_turns}) reached")
+    return "save_interview"
 
 
-def get_interview_statistics(state: InterviewState) -> Dict[str, Any]:
+def get_interview_statistics(state: InterviewState) -> dict[str, Any]:
     """Get statistics about the current interview.
 
     Args:
@@ -370,7 +364,7 @@ def format_interview_summary(state: InterviewState) -> str:
     analyst = state.get("analyst")
 
     lines = [
-        f"Interview Summary",
+        "Interview Summary",
         "=" * 50,
         f"Analyst: {stats['analyst_name']}",
         f"Role: {analyst.role if analyst else 'Unknown'}",
@@ -384,7 +378,7 @@ def format_interview_summary(state: InterviewState) -> str:
     return "\n".join(lines)
 
 
-def extract_citations_from_interview(interview_text: str) -> List[str]:
+def extract_citations_from_interview(interview_text: str) -> list[str]:
     """Extract all citations from an interview transcript.
 
     Args:
@@ -415,7 +409,7 @@ def extract_citations_from_interview(interview_text: str) -> List[str]:
 # Interview quality assessment
 
 
-def assess_interview_quality(state: InterviewState) -> Dict[str, Any]:
+def assess_interview_quality(state: InterviewState) -> dict[str, Any]:
     """Assess the quality of a completed interview.
 
     Provides metrics and indicators of interview quality based on various
@@ -431,7 +425,6 @@ def assess_interview_quality(state: InterviewState) -> Dict[str, Any]:
         >>> quality = assess_interview_quality(state)
         >>> print(f"Quality score: {quality['overall_score']}/10")
     """
-    messages = state.get("messages", [])
     interview = state.get("interview", "")
     context = state.get("context", [])
 

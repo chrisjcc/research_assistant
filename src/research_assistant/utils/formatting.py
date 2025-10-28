@@ -11,9 +11,8 @@ Example:
 
 import json
 from datetime import datetime
-from io import StringIO
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 try:
     import pandas as pd
@@ -24,7 +23,7 @@ except ImportError:
 
 
 def format_timestamp(
-    timestamp: Optional[datetime] = None, format_str: str = "%Y-%m-%d %H:%M:%S"
+    timestamp: datetime | None = None, format_str: str = "%Y-%m-%d %H:%M:%S"
 ) -> str:
     """Format timestamp for display.
 
@@ -40,7 +39,7 @@ def format_timestamp(
         >>> print(formatted)  # "2024-01-15 14:30:00"
     """
     if timestamp is None:
-        timestamp = datetime.now()
+        timestamp = datetime.now(datetime.UTC)
 
     return timestamp.strftime(format_str)
 
@@ -60,15 +59,16 @@ def format_duration(seconds: float) -> str:
     """
     if seconds < 60:
         return f"{seconds:.1f}s"
-    elif seconds < 3600:
+
+    if seconds < 3600:
         minutes = int(seconds // 60)
         secs = int(seconds % 60)
         return f"{minutes}m {secs}s"
-    else:
-        hours = int(seconds // 3600)
-        minutes = int((seconds % 3600) // 60)
-        secs = int(seconds % 60)
-        return f"{hours}h {minutes}m {secs}s"
+
+    hours = int(seconds // 3600)
+    minutes = int((seconds % 3600) // 60)
+    secs = int(seconds % 60)
+    return f"{hours}h {minutes}m {secs}s"
 
 
 def format_number(number: int, use_separators: bool = True) -> str:
@@ -91,9 +91,9 @@ def format_number(number: int, use_separators: bool = True) -> str:
 
 
 def format_report_metadata(
-    state: Dict[str, Any],
-    config: Optional[Dict[str, Any]] = None,
-    execution_time: Optional[float] = None,
+    state: dict[str, Any],
+    config: dict[str, Any] | None = None,
+    execution_time: float | None = None,
 ) -> str:
     """Format research report metadata section.
 
@@ -134,8 +134,8 @@ def format_report_metadata(
             [
                 "",
                 "**Configuration:**",
-                f"- LLM Model: {config.get('llm', {}).get('model', 'N/A')}",
-                f"- Max Interview Turns: {config.get('research', {}).get('max_interview_turns', 'N/A')}",
+                f"- Max Interview Turns: "
+                f"{config.get('research', {}).get('max_interview_turns', 'N/A')}",
             ]
         )
 
@@ -145,7 +145,7 @@ def format_report_metadata(
     return "\n".join(lines)
 
 
-def format_analyst_summary(analysts: List[Any]) -> str:
+def format_analyst_summary(analysts: list[Any]) -> str:
     """Format analyst list as markdown table.
 
     Args:
@@ -177,7 +177,7 @@ def format_analyst_summary(analysts: List[Any]) -> str:
     return "\n".join(lines)
 
 
-def format_metrics_report(metrics: Dict[str, Any]) -> str:
+def format_metrics_report(metrics: dict[str, Any]) -> str:
     """Format metrics as markdown report.
 
     Args:
@@ -242,7 +242,7 @@ def format_metrics_report(metrics: Dict[str, Any]) -> str:
 
 
 def save_report(
-    content: str, output_path: str, metadata: Optional[str] = None, metrics: Optional[str] = None
+    content: str, output_path: str, metadata: str | None = None, metrics: str | None = None
 ) -> None:
     """Save report to file with optional metadata and metrics.
 
@@ -281,7 +281,7 @@ def save_report(
 
 
 def export_to_json(
-    state: Dict[str, Any], output_path: str, indent: int = 2, include_metadata: bool = True
+    state: dict[str, Any], output_path: str, indent: int = 2, include_metadata: bool = True
 ) -> None:
     """Export research state to JSON file.
 
@@ -302,7 +302,7 @@ def export_to_json(
 
     if include_metadata:
         export_data["metadata"] = {
-            "exported_at": datetime.now().isoformat(),
+            "exported_at": datetime.now(datetime.UTC).isoformat(),
             "topic": state.get("topic"),
             "num_analysts": len(state.get("analysts", [])),
         }
@@ -326,12 +326,13 @@ def export_to_json(
             export_data[key] = state[key]
 
     # Write JSON
-    with open(output_file, "w", encoding="utf-8") as f:
+    output_path = Path(output_file)
+    with output_path.open("w", encoding="utf-8") as f:
         json.dump(export_data, f, indent=indent, ensure_ascii=False)
 
 
 def export_to_html(
-    content: str, output_path: str, title: Optional[str] = None, css: Optional[str] = None
+    content: str, output_path: str, title: str | None = None, css: str | None = None
 ) -> None:
     """Export markdown content to HTML file.
 
@@ -346,10 +347,10 @@ def export_to_html(
     """
     try:
         import markdown
-    except ImportError:
+    except ImportError as e:
         raise ImportError(
             "markdown package required for HTML export. Install with: pip install markdown"
-        )
+        ) from e
 
     output_file = Path(output_path)
     output_file.parent.mkdir(parents=True, exist_ok=True)
@@ -360,7 +361,9 @@ def export_to_html(
     # Default CSS
     default_css = """
     body {
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        font-family:
+            -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+            'Helvetica Neue', Arial, sans-serif;
         line-height: 1.6;
         max-width: 800px;
         margin: 0 auto;
@@ -426,7 +429,7 @@ def create_filename(
     safe_topic = "".join(c for c in safe_topic if c.isalnum() or c == "_")
 
     # Generate timestamp
-    timestamp = datetime.now().strftime(timestamp_format)
+    timestamp = datetime.now(datetime.UTC).strftime(timestamp_format)
 
     # Format filename
     filename = template.format(topic=safe_topic, timestamp=timestamp)
@@ -454,10 +457,7 @@ def format_progress_bar(
         >>> print(bar)
         Interviews |██████████░░░░░░░░░░| 60% (3/5)
     """
-    if total == 0:
-        percent = 0
-    else:
-        percent = int((current / total) * 100)
+    percent = 0 if total == 0 else int(current / total * 100)
 
     filled = int((current / total) * width) if total > 0 else 0
     bar = "█" * filled + "░" * (width - filled)
@@ -465,7 +465,7 @@ def format_progress_bar(
     return f"{prefix} |{bar}| {percent}% ({current}/{total}) {suffix}".strip()
 
 
-def format_table(headers: List[str], rows: List[List[Any]], markdown: bool = True) -> str:
+def format_table(headers: list[str], rows: list[list[Any]], markdown: bool = True) -> str:
     """Format data as a table.
 
     Args:
@@ -516,34 +516,33 @@ def format_table(headers: List[str], rows: List[List[Any]], markdown: bool = Tru
 
         return "\n".join(lines)
 
-    else:
-        # Plain text table
-        if PANDAS_AVAILABLE:
-            df = pd.DataFrame(rows, columns=headers)
-            return df.to_string(index=False)
-        else:
-            # Simple plain text format
-            col_widths = [len(h) for h in headers]
-            for row in rows:
-                for i, cell in enumerate(row):
-                    col_widths[i] = max(col_widths[i], len(str(cell)))
+    # Plain text table
+    if PANDAS_AVAILABLE:
+        df = pd.DataFrame(rows, columns=headers)
+        return df.to_string(index=False)
 
-            lines = []
+    # Simple plain text format
+    col_widths = [len(h) for h in headers]
+    for row in rows:
+        for i, cell in enumerate(row):
+            col_widths[i] = max(col_widths[i], len(str(cell)))
 
-            # Header
-            header_line = " ".join(h.ljust(col_widths[i]) for i, h in enumerate(headers))
-            lines.append(header_line)
-            lines.append("-" * len(header_line))
+    lines = []
 
-            # Rows
-            for row in rows:
-                row_line = " ".join(str(cell).ljust(col_widths[i]) for i, cell in enumerate(row))
-                lines.append(row_line)
+    # Header
+    header_line = " ".join(h.ljust(col_widths[i]) for i, h in enumerate(headers))
+    lines.append(header_line)
+    lines.append("-" * len(header_line))
 
-            return "\n".join(lines)
+    # Rows
+    for row in rows:
+        row_line = " ".join(str(cell).ljust(col_widths[i]) for i, cell in enumerate(row))
+        lines.append(row_line)
+
+    return "\n".join(lines)
 
 
-def format_list(items: List[str], ordered: bool = False, indent: int = 0) -> str:
+def format_list(items: list[str], ordered: bool = False, indent: int = 0) -> str:
     """Format list as markdown.
 
     Args:
@@ -590,7 +589,7 @@ def truncate_text(text: str, max_length: int = 100, suffix: str = "...") -> str:
     return text[: max_length - len(suffix)] + suffix
 
 
-def format_citation_list(citations: List[str]) -> str:
+def format_citation_list(citations: list[str]) -> str:
     """Format list of citations as markdown.
 
     Args:
@@ -645,7 +644,7 @@ def colorize_text(text: str, color: str) -> str:
     return f"{color_code}{text}{reset_code}"
 
 
-def format_key_value_pairs(data: Dict[str, Any], indent: int = 0, separator: str = ": ") -> str:
+def format_key_value_pairs(data: dict[str, Any], indent: int = 0, separator: str = ": ") -> str:
     """Format dictionary as key-value pairs.
 
     Args:
@@ -679,7 +678,7 @@ def format_key_value_pairs(data: Dict[str, Any], indent: int = 0, separator: str
     return "\n".join(lines)
 
 
-def format_error_report(errors: List[Dict[str, Any]]) -> str:
+def format_error_report(errors: list[dict[str, Any]]) -> str:
     """Format list of errors as readable report.
 
     Args:

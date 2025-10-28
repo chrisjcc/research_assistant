@@ -14,13 +14,13 @@ Example:
 import hashlib
 import logging
 import time
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone  # noqa: UP017
 from functools import wraps
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any
 
 from langchain_community.document_loaders import WikipediaLoader
-from langchain_core.messages import SystemMessage
 from langchain_openai import ChatOpenAI
 from langchain_tavily import TavilySearch
 
@@ -55,7 +55,7 @@ class CacheEntry:
     """Represents a cached search result."""
 
     query: str
-    results: List[Dict[str, Any]]
+    results: list[dict[str, Any]]
     timestamp: datetime
     ttl_seconds: int = 3600  # 1 hour default
 
@@ -65,7 +65,7 @@ class CacheEntry:
         Returns:
             True if expired, False otherwise.
         """
-        age = datetime.now() - self.timestamp
+        age = datetime.now(timezone.utc) - self.timestamp  # noqa: UP017
         return age.total_seconds() > self.ttl_seconds
 
 
@@ -78,7 +78,7 @@ class SearchCache:
         Args:
             max_size: Maximum number of entries to cache.
         """
-        self._cache: Dict[str, CacheEntry] = {}
+        self._cache: dict[str, CacheEntry] = {}
         self._max_size = max_size
         logger.debug(f"Initialized search cache with max_size={max_size}")
 
@@ -95,7 +95,7 @@ class SearchCache:
         content = f"{search_type}:{query.lower().strip()}"
         return hashlib.sha256(content.encode()).hexdigest()
 
-    def get(self, query: str, search_type: str) -> Optional[List[Dict[str, Any]]]:
+    def get(self, query: str, search_type: str) -> list[dict[str, Any]] | None:
         """Get cached results if available and not expired.
 
         Args:
@@ -121,7 +121,7 @@ class SearchCache:
         return entry.results
 
     def set(
-        self, query: str, search_type: str, results: List[Dict[str, Any]], ttl_seconds: int = 3600
+        self, query: str, search_type: str, results: list[dict[str, Any]], ttl_seconds: int = 3600
     ) -> None:
         """Cache search results.
 
@@ -139,8 +139,12 @@ class SearchCache:
 
         key = self._generate_key(query, search_type)
         entry = CacheEntry(
-            query=query, results=results, timestamp=datetime.now(), ttl_seconds=ttl_seconds
+            query=query,
+            results=results,
+            timestamp=datetime.now(timezone.utc),  # noqa: UP017
+            ttl_seconds=ttl_seconds,
         )
+
         self._cache[key] = entry
         logger.debug(f"Cached results for query: {query[:50]}")
 
@@ -149,7 +153,7 @@ class SearchCache:
         self._cache.clear()
         logger.info("Search cache cleared")
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         """Get cache statistics.
 
         Returns:
@@ -225,7 +229,7 @@ class RateLimiter:
 
     max_requests: int = 10
     time_window: int = 60  # seconds
-    _requests: List[datetime] = field(default_factory=list)
+    _requests: list[datetime] = field(default_factory=list)
 
     def check_and_wait(self) -> None:
         """Check rate limit and wait if necessary.
@@ -233,7 +237,7 @@ class RateLimiter:
         Raises:
             RateLimitError: If rate limit would be exceeded even after waiting.
         """
-        now = datetime.now()
+        now = datetime.now(timezone.utc)  # noqa: UP017
         cutoff = now - timedelta(seconds=self.time_window)
 
         # Remove old requests outside the time window
@@ -252,6 +256,7 @@ class RateLimiter:
         # Record this request
         self._requests.append(now)
         logger.debug(f"Rate limit check: {len(self._requests)}/{self.max_requests} requests")
+        return None
 
 
 class WebSearchTool:
@@ -310,7 +315,7 @@ class WebSearchTool:
         )
 
     @retry_with_backoff(max_retries=3, exceptions=(Exception,))
-    def search(self, query: str) -> List[Dict[str, Any]]:
+    def search(self, query: str) -> list[dict[str, Any]]:
         """Execute web search with retry and caching.
 
         Args:
@@ -371,7 +376,7 @@ class WebSearchTool:
             logger.error(f"Web search failed for query '{query[:50]}': {str(e)}")
             raise SearchError(f"Web search failed: {str(e)}") from e
 
-    def format_results(self, results: List[Dict[str, Any]]) -> str:
+    def format_results(self, results: list[dict[str, Any]]) -> str:
         """Format search results for LLM context.
 
         Args:
@@ -443,7 +448,7 @@ class WikipediaSearchTool:
         )
 
     @retry_with_backoff(max_retries=3, exceptions=(Exception,))
-    def search(self, query: str) -> List[Any]:
+    def search(self, query: str) -> list[Any]:
         """Execute Wikipedia search with retry and caching.
 
         Args:
@@ -508,7 +513,7 @@ class WikipediaSearchTool:
             logger.error(f"Wikipedia search failed for query '{query[:50]}': {str(e)}")
             raise SearchError(f"Wikipedia search failed: {str(e)}") from e
 
-    def format_results(self, documents: List[Any]) -> str:
+    def format_results(self, documents: list[Any]) -> str:
         """Format Wikipedia documents for LLM context.
 
         Args:
@@ -544,7 +549,7 @@ class SearchQueryGenerator:
         >>> print(query.search_query)
     """
 
-    def __init__(self, llm: Optional[ChatOpenAI] = None):
+    def __init__(self, llm: ChatOpenAI | None = None):
         """Initialize search query generator.
 
         Args:
@@ -553,7 +558,7 @@ class SearchQueryGenerator:
         self.llm = llm or ChatOpenAI(model="gpt-4o", temperature=0)
         logger.debug("Initialized SearchQueryGenerator")
 
-    def generate_from_messages(self, messages: List[Any], detailed: bool = False) -> SearchQuery:
+    def generate_from_messages(self, messages: list[Any], detailed: bool = False) -> SearchQuery:
         """Generate a search query from conversation messages.
 
         Args:
@@ -601,7 +606,7 @@ class SearchQueryGenerator:
 
 def create_search_tools(
     web_max_results: int = 3, wiki_max_docs: int = 2, use_cache: bool = True, rate_limit: int = 10
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Factory function to create configured search tools.
 
     Args:

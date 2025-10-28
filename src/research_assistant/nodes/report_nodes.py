@@ -12,7 +12,7 @@ Example:
 
 import logging
 import re
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_openai import ChatOpenAI
@@ -36,8 +36,8 @@ class ReportGenerationError(Exception):
 
 
 def write_section(
-    state: InterviewState, llm: Optional[ChatOpenAI] = None, detailed_prompts: bool = False
-) -> Dict[str, Any]:
+    state: InterviewState, llm: ChatOpenAI | None = None, detailed_prompts: bool = False
+) -> dict[str, Any]:
     """Write a report section based on interview findings.
 
     This node transforms interview transcripts and context documents into
@@ -119,8 +119,8 @@ def write_section(
 
 
 def write_report(
-    state: ResearchGraphState, llm: Optional[ChatOpenAI] = None, detailed_prompts: bool = False
-) -> Dict[str, Any]:
+    state: ResearchGraphState, llm: ChatOpenAI | None = None, detailed_prompts: bool = False
+) -> dict[str, Any]:
     """Synthesize all sections into a unified report body.
 
     This node takes all analyst sections and weaves them together into
@@ -197,8 +197,8 @@ def write_report(
 
 
 def write_introduction(
-    state: ResearchGraphState, llm: Optional[ChatOpenAI] = None, detailed_prompts: bool = False
-) -> Dict[str, Any]:
+    state: ResearchGraphState, llm: ChatOpenAI | None = None, detailed_prompts: bool = False
+) -> dict[str, Any]:
     """Write the introduction for the final report.
 
     Creates an engaging introduction that previews the report's content
@@ -263,8 +263,8 @@ def write_introduction(
 
 
 def write_conclusion(
-    state: ResearchGraphState, llm: Optional[ChatOpenAI] = None, detailed_prompts: bool = False
-) -> Dict[str, Any]:
+    state: ResearchGraphState, llm: ChatOpenAI | None = None, detailed_prompts: bool = False
+) -> dict[str, Any]:
     """Write the conclusion for the final report.
 
     Creates a compelling conclusion that synthesizes key takeaways and
@@ -330,7 +330,7 @@ def write_conclusion(
         raise ReportGenerationError(f"Conclusion writing failed: {str(e)}") from e
 
 
-def finalize_report(state: ResearchGraphState) -> Dict[str, Any]:
+def finalize_report(state: ResearchGraphState) -> dict[str, Any]:
     """Assemble all report components into the final document.
 
     This is the final "reduce" step that combines the introduction,
@@ -407,7 +407,7 @@ def finalize_report(state: ResearchGraphState) -> Dict[str, Any]:
 # Report quality and utility functions
 
 
-def extract_sources_from_content(content: str) -> List[str]:
+def extract_sources_from_content(content: str) -> list[str]:
     """Extract source citations from report content.
 
     Args:
@@ -459,7 +459,7 @@ def count_citations_in_content(content: str) -> int:
     return len(matches)
 
 
-def get_report_statistics(state: ResearchGraphState) -> Dict[str, Any]:
+def get_report_statistics(state: ResearchGraphState) -> dict[str, Any]:
     """Get comprehensive statistics about the generated report.
 
     Args:
@@ -521,7 +521,7 @@ def format_report_summary(state: ResearchGraphState) -> str:
     analysts = state.get("analysts", [])
 
     lines = [
-        f"Research Report Summary",
+        "Research Report Summary",
         "=" * 50,
         f"Topic: {topic}",
         f"Analysts: {len(analysts)}",
@@ -542,7 +542,7 @@ def format_report_summary(state: ResearchGraphState) -> str:
     return "\n".join(lines)
 
 
-def validate_report_structure(content: str) -> Dict[str, bool]:
+def validate_report_structure(content: str) -> dict[str, bool]:
     """Validate that report content follows expected structure.
 
     Args:
@@ -566,7 +566,7 @@ def validate_report_structure(content: str) -> Dict[str, bool]:
     }
 
 
-def assess_report_quality(state: ResearchGraphState) -> Dict[str, Any]:
+def assess_report_quality(state: ResearchGraphState) -> dict[str, Any]:
     """Assess overall quality of the generated report.
 
     Provides quality metrics based on various heuristics.
@@ -614,7 +614,7 @@ def assess_report_quality(state: ResearchGraphState) -> Dict[str, Any]:
     }
 
 
-def _generate_recommendations(stats: Dict[str, Any], validation: Dict[str, bool]) -> List[str]:
+def _generate_recommendations(stats: dict[str, Any], validation: dict[str, bool]) -> list[str]:
     """Generate improvement recommendations based on statistics.
 
     Args:

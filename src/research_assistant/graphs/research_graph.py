@@ -10,7 +10,8 @@ Example:
 """
 
 import logging
-from typing import Any, Dict, List, Optional, Union
+from pathlib import Path
+from typing import Any
 
 from langchain_core.messages import HumanMessage
 from langchain_openai import ChatOpenAI
@@ -18,22 +19,16 @@ from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph
 from langgraph.types import Send
 
-from ..core.schemas import Analyst
 from ..core.state import GenerateAnalystsState, ResearchGraphState
 from ..nodes.analyst_nodes import create_analysts, human_feedback
-from ..nodes.report_nodes import (
-    finalize_report,
-    write_conclusion,
-    write_introduction,
-    write_report,
-)
+from ..nodes.report_nodes import finalize_report, write_conclusion, write_introduction, write_report
 from .interview_graph import build_interview_graph
 
 # Configure logger
 logger = logging.getLogger(__name__)
 
 
-def initiate_all_interviews(state: ResearchGraphState) -> Union[str, List[Send]]:
+def initiate_all_interviews(state: ResearchGraphState) -> str | list[Send]:
     """Conditional edge to initiate interviews or return to analyst creation.
 
     This function implements the branching logic after human feedback:
@@ -90,10 +85,10 @@ def initiate_all_interviews(state: ResearchGraphState) -> Union[str, List[Send]]
 
 
 def build_research_graph(
-    llm: Optional[ChatOpenAI] = None,
-    interview_graph: Optional[StateGraph] = None,
+    llm: ChatOpenAI | None = None,
+    interview_graph: StateGraph | None = None,
     enable_interrupts: bool = True,
-    checkpointer: Optional[Any] = None,
+    checkpointer: Any | None = None,
     detailed_prompts: bool = False,
 ) -> StateGraph:
     """Build the main research graph with all components.
@@ -136,7 +131,7 @@ def build_research_graph(
     builder = StateGraph(ResearchGraphState)
 
     # Define node functions with dependency injection
-    def create_analysts_node(state: ResearchGraphState) -> Dict[str, Any]:
+    def create_analysts_node(state: ResearchGraphState) -> dict[str, Any]:
         # Convert to GenerateAnalystsState
         analysts_state: GenerateAnalystsState = {
             "topic": state["topic"],
@@ -146,19 +141,19 @@ def build_research_graph(
         }
         return create_analysts(analysts_state, llm=llm, detailed_prompts=detailed_prompts)
 
-    def human_feedback_node(state: ResearchGraphState) -> Dict[str, Any]:
+    def human_feedback_node(state: ResearchGraphState) -> dict[str, Any]:
         return human_feedback(state)
 
-    def write_report_node(state: ResearchGraphState) -> Dict[str, Any]:
+    def write_report_node(state: ResearchGraphState) -> dict[str, Any]:
         return write_report(state, llm=llm, detailed_prompts=detailed_prompts)
 
-    def write_introduction_node(state: ResearchGraphState) -> Dict[str, Any]:
+    def write_introduction_node(state: ResearchGraphState) -> dict[str, Any]:
         return write_introduction(state, llm=llm, detailed_prompts=detailed_prompts)
 
-    def write_conclusion_node(state: ResearchGraphState) -> Dict[str, Any]:
+    def write_conclusion_node(state: ResearchGraphState) -> dict[str, Any]:
         return write_conclusion(state, llm=llm, detailed_prompts=detailed_prompts)
 
-    def finalize_report_node(state: ResearchGraphState) -> Dict[str, Any]:
+    def finalize_report_node(state: ResearchGraphState) -> dict[str, Any]:
         return finalize_report(state)
 
     # Add nodes
@@ -226,7 +221,7 @@ def create_research_config(
     llm_temperature: float = 0.0,
     web_max_results: int = 3,
     wiki_max_docs: int = 2,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Create a complete configuration for research execution.
 
     Args:
@@ -262,7 +257,7 @@ def create_research_config(
     }
 
 
-def get_research_graph_info() -> Dict[str, Any]:
+def get_research_graph_info() -> dict[str, Any]:
     """Get information about the research graph structure.
 
     Returns:
@@ -304,7 +299,7 @@ def run_research(
     enable_interrupts: bool = False,
     detailed_prompts: bool = False,
     thread_id: str = "default",
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Convenience function to run complete research workflow.
 
     Args:
@@ -338,6 +333,7 @@ def run_research(
     initial_state: ResearchGraphState = {
         "topic": topic,
         "max_analysts": max_analysts,
+        "max_interview_turns": max_interview_turns,
         "human_analyst_feedback": human_analyst_feedback,
         "analysts": [],
         "sections": [],
@@ -424,8 +420,7 @@ def stream_research(
 
     try:
         # Stream execution
-        for update in graph.stream(initial_state, config):
-            yield update
+        yield from graph.stream(initial_state, config)
 
         logger.info("Research streaming completed")
 
@@ -436,7 +431,7 @@ def stream_research(
 
 # Visualization helper
 def visualize_research_graph(
-    graph: Optional[StateGraph] = None, output_path: str = "research_graph.png"
+    graph: StateGraph | None = None, output_path: str = "research_graph.png"
 ) -> None:
     """Visualize the research graph structure.
 
@@ -448,6 +443,8 @@ def visualize_research_graph(
         >>> visualize_research_graph(output_path="my_graph.png")
     """
     try:
+        from contextlib import suppress
+
         from IPython.display import Image, display
 
         if graph is None:
@@ -457,16 +454,15 @@ def visualize_research_graph(
         img_data = graph.get_graph().draw_mermaid_png()
 
         # Save to file
-        with open(output_path, "wb") as f:
+        output_path = Path(output_path)
+        with output_path.open("wb") as f:
             f.write(img_data)
 
         logger.info(f"Graph visualization saved to {output_path}")
 
         # Display in notebook if available
-        try:
+        with suppress(Exception):
             display(Image(img_data))
-        except:
-            pass
 
     except ImportError:
         logger.warning("IPython not available, skipping visualization")
@@ -476,8 +472,8 @@ def visualize_research_graph(
 
 # Utility for handling interrupted execution
 def continue_research(
-    graph: StateGraph, thread_id: str, human_feedback: Optional[str] = None
-) -> Dict[str, Any]:
+    graph: StateGraph, thread_id: str, human_feedback: str | None = None
+) -> dict[str, Any]:
     """Continue research execution after interrupt.
 
     Used when graph is interrupted at human_feedback node. Allows updating
@@ -507,7 +503,7 @@ def continue_research(
 
     # Get current state
     try:
-        current_state = graph.get_state(config)
+        graph.get_state(config)
         logger.debug(f"Retrieved state for thread {thread_id}")
     except Exception as e:
         logger.error(f"Failed to retrieve state: {str(e)}")
@@ -530,7 +526,7 @@ def continue_research(
         raise
 
 
-def get_research_state(graph: StateGraph, thread_id: str) -> Dict[str, Any]:
+def get_research_state(graph: StateGraph, thread_id: str) -> dict[str, Any]:
     """Get the current state of a research execution.
 
     Useful for inspecting state during or after execution, especially
@@ -559,7 +555,7 @@ def get_research_state(graph: StateGraph, thread_id: str) -> Dict[str, Any]:
 
 def list_research_checkpoints(
     graph: StateGraph, thread_id: str, limit: int = 10
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     """List checkpoints for a research execution.
 
     Args:
@@ -607,7 +603,7 @@ def create_research_system(
     web_max_results: int = 3,
     wiki_max_docs: int = 2,
     use_cache: bool = True,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Factory function to create a complete configured research system.
 
     Args:

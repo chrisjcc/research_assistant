@@ -10,19 +10,14 @@ Example:
 """
 
 from pathlib import Path
-from typing import Any, Dict, List
-from unittest.mock import MagicMock, Mock
+from typing import Any
+from unittest.mock import Mock
 
 import pytest
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 from omegaconf import DictConfig, OmegaConf
 
 from research_assistant.core.schemas import Analyst, Perspectives, SearchQuery
-from research_assistant.core.state import (
-    GenerateAnalystsState,
-    InterviewState,
-    ResearchGraphState,
-)
 
 # ============================================================================
 # Configuration Fixtures
@@ -36,7 +31,7 @@ def test_config() -> DictConfig:
     Returns:
         Test configuration with minimal settings.
     """
-    config = OmegaConf.create(
+    return OmegaConf.create(
         {
             "llm": {
                 "provider": "openai",
@@ -68,11 +63,10 @@ def test_config() -> DictConfig:
             },
         }
     )
-    return config
 
 
 @pytest.fixture
-def minimal_config() -> Dict[str, Any]:
+def minimal_config() -> dict[str, Any]:
     """Provide minimal configuration dictionary.
 
     Returns:
@@ -124,7 +118,8 @@ def mock_llm():
 
         # Default: question generation
         return AIMessage(
-            content="That's an interesting question. Can you tell me more about the specific aspects?",
+            content="That's an interesting question.\
+            Can you tell me more about the specific aspects?",
             name=None,  # Interviewer asking
         )
 
@@ -213,7 +208,7 @@ def sample_analyst() -> Analyst:
 
 
 @pytest.fixture
-def sample_analysts() -> List[Analyst]:
+def sample_analysts() -> list[Analyst]:
     """Provide a list of sample analysts.
 
     Returns:
@@ -257,7 +252,7 @@ def sample_perspectives(sample_analysts) -> Perspectives:
 
 
 @pytest.fixture
-def sample_messages() -> List[Any]:
+def sample_messages() -> list[Any]:
     """Provide sample conversation messages.
 
     Returns:
@@ -290,7 +285,7 @@ def sample_system_message() -> SystemMessage:
 
 
 @pytest.fixture
-def sample_search_results() -> List[Dict[str, Any]]:
+def sample_search_results() -> list[dict[str, Any]]:
     """Provide sample search results.
 
     Returns:
@@ -332,7 +327,7 @@ This article discusses machine learning best practices.
 
 
 @pytest.fixture
-def sample_interview_state(sample_analyst, sample_messages) -> Dict[str, Any]:
+def sample_interview_state(sample_analyst, sample_messages) -> dict[str, Any]:
     """Provide sample InterviewState.
 
     Returns:
@@ -349,7 +344,7 @@ def sample_interview_state(sample_analyst, sample_messages) -> Dict[str, Any]:
 
 
 @pytest.fixture
-def sample_research_state(sample_analysts) -> Dict[str, Any]:
+def sample_research_state(sample_analysts) -> dict[str, Any]:
     """Provide sample ResearchGraphState.
 
     Returns:
@@ -369,7 +364,7 @@ def sample_research_state(sample_analysts) -> Dict[str, Any]:
 
 
 @pytest.fixture
-def sample_generate_analysts_state() -> Dict[str, Any]:
+def sample_generate_analysts_state() -> dict[str, Any]:
     """Provide sample GenerateAnalystsState.
 
     This state is used for the analyst generation phase of the workflow.
@@ -517,7 +512,7 @@ def mock_research_graph():
 
 
 @pytest.fixture
-def sample_metrics() -> Dict[str, Any]:
+def sample_metrics() -> dict[str, Any]:
     """Provide sample metrics dictionary.
 
     Returns:
@@ -556,7 +551,7 @@ def mock_cache():
 
     mock = Mock()
     mock.get.side_effect = lambda key: cache_data.get(key)
-    mock.set.side_effect = lambda key, value, ttl=None: cache_data.update({key: value})
+    mock.set.side_effect = lambda key, value: cache_data.update({key: value})
     mock.delete.side_effect = lambda key: cache_data.pop(key, None)
     mock.clear.side_effect = lambda: cache_data.clear()
 

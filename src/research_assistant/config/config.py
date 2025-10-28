@@ -13,7 +13,7 @@ import logging
 import os
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 from hydra import compose, initialize_config_dir
 from hydra.core.global_hydra import GlobalHydra
@@ -70,8 +70,8 @@ class ConfigPaths:
 
 def load_config(
     config_name: str = "default",
-    overrides: Optional[list] = None,
-    config_path: Optional[str] = None,
+    overrides: list | None = None,
+    config_path: str | None = None,
 ) -> DictConfig:
     """Load configuration using Hydra.
 
@@ -183,7 +183,7 @@ def merge_configs(base_cfg: DictConfig, override_cfg: DictConfig) -> DictConfig:
 # Configuration accessors for specific components
 
 
-def get_llm_config(cfg: DictConfig) -> Dict[str, Any]:
+def get_llm_config(cfg: DictConfig) -> dict[str, Any]:
     """Extract LLM configuration.
 
     Args:
@@ -194,7 +194,7 @@ def get_llm_config(cfg: DictConfig) -> Dict[str, Any]:
 
     Example:
         >>> llm_cfg = get_llm_config(cfg)
-        >>> print(llm_cfg['model'])
+        >>> logger.info(llm_cfg['model'])
     """
     llm_cfg = OmegaConf.to_container(cfg.llm, resolve=True)
 
@@ -209,7 +209,7 @@ def get_llm_config(cfg: DictConfig) -> Dict[str, Any]:
     return llm_cfg
 
 
-def get_search_config(cfg: DictConfig) -> Dict[str, Any]:
+def get_search_config(cfg: DictConfig) -> dict[str, Any]:
     """Extract search configuration.
 
     Args:
@@ -220,7 +220,7 @@ def get_search_config(cfg: DictConfig) -> Dict[str, Any]:
 
     Example:
         >>> search_cfg = get_search_config(cfg)
-        >>> print(search_cfg['web']['max_results'])
+        >>> logger.info(search_cfg['web']['max_results'])
     """
     search_cfg = OmegaConf.to_container(cfg.search, resolve=True)
 
@@ -232,7 +232,7 @@ def get_search_config(cfg: DictConfig) -> Dict[str, Any]:
     return search_cfg
 
 
-def get_research_config(cfg: DictConfig) -> Dict[str, Any]:
+def get_research_config(cfg: DictConfig) -> dict[str, Any]:
     """Extract research configuration.
 
     Args:
@@ -243,12 +243,12 @@ def get_research_config(cfg: DictConfig) -> Dict[str, Any]:
 
     Example:
         >>> research_cfg = get_research_config(cfg)
-        >>> print(research_cfg['max_analysts'])
+        >>> logger.info(research_cfg['max_analysts'])
     """
     return OmegaConf.to_container(cfg.research, resolve=True)
 
 
-def get_logging_config(cfg: DictConfig) -> Dict[str, Any]:
+def get_logging_config(cfg: DictConfig) -> dict[str, Any]:
     """Extract logging configuration.
 
     Args:
@@ -259,12 +259,12 @@ def get_logging_config(cfg: DictConfig) -> Dict[str, Any]:
 
     Example:
         >>> log_cfg = get_logging_config(cfg)
-        >>> print(log_cfg['level'])
+        >>> logger.info(log_cfg['level'])
     """
     return OmegaConf.to_container(cfg.logging, resolve=True)
 
 
-def get_output_config(cfg: DictConfig) -> Dict[str, Any]:
+def get_output_config(cfg: DictConfig) -> dict[str, Any]:
     """Extract output configuration.
 
     Args:
@@ -275,7 +275,7 @@ def get_output_config(cfg: DictConfig) -> Dict[str, Any]:
 
     Example:
         >>> output_cfg = get_output_config(cfg)
-        >>> print(output_cfg['output_dir'])
+        >>> logger.info(output_cfg['output_dir'])
     """
     return OmegaConf.to_container(cfg.output, resolve=True)
 
@@ -294,7 +294,7 @@ def validate_config(cfg: DictConfig) -> bool:
 
     Example:
         >>> if validate_config(cfg):
-        ...     print("Configuration is valid")
+        ...     logger.info("Configuration is valid")
     """
     logger.info("Validating configuration")
 
@@ -338,11 +338,10 @@ def print_config(cfg: DictConfig, resolve: bool = True) -> None:
     Example:
         >>> print_config(cfg)
     """
-    print("=" * 80)
-    print("CONFIGURATION")
-    print("=" * 80)
-    print(OmegaConf.to_yaml(cfg, resolve=resolve))
-    print("=" * 80)
+    logger.info("=" * 80)
+    logger.info("CONFIGURATION")
+    logger.info("=" * 80)
+    logger.info(OmegaConf.to_yaml(cfg, resolve=resolve))
 
 
 # Environment variable helpers
@@ -379,7 +378,7 @@ def check_required_env_vars(cfg: DictConfig) -> bool:
 
     Example:
         >>> if not check_required_env_vars(cfg):
-        ...     print("Missing required environment variables")
+        ...     logger.info("Missing required environment variables")
     """
     required_vars = []
 
@@ -423,6 +422,7 @@ def create_quick_research_config(
         >>> cfg = create_quick_research_config("AI Safety", max_analysts=4)
     """
     overrides = [
+        f"research.topic='{topic}'",  # <-- include topic here
         f"research.max_analysts={max_analysts}",
         f"llm.model={llm_model}",
         "research.enable_interrupts=false",  # Quick run without interrupts

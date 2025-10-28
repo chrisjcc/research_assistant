@@ -1,9 +1,6 @@
 """Prompt templates and instructions for the research assistant."""
 
-from .analyst_prompts import (
-    format_analyst_instructions,
-    format_regeneration_instructions,
-)
+from .analyst_prompts import format_analyst_instructions, format_regeneration_instructions
 from .interview_prompts import (
     format_answer_instructions,
     format_question_instructions,

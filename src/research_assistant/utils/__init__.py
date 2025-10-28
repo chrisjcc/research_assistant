@@ -9,7 +9,9 @@ Example:
     >>> logger = get_logger(__name__)
 """
 
-from .exceptions import (  # Base exceptions; Configuration; Analyst; Interview; Search; Report; LLM; State; Graph; Data; File; Utilities
+# Base exceptions; Configuration; Analyst; Interview; Search; Report;
+# LLM; State; Graph; Data; File; Utilities
+from .exceptions import (
     AnalystCreationError,
     AnalystError,
     AnalystValidationError,

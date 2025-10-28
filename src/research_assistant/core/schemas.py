@@ -20,8 +20,6 @@ Example:
     Description: Focuses on alignment and safety concerns in LLMs
 """
 
-from typing import List, Optional
-
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 
@@ -213,7 +211,7 @@ class Perspectives(BaseModel):
         }
     )
 
-    analysts: List[Analyst] = Field(
+    analysts: list[Analyst] = Field(
         description="Comprehensive list of analysts with their roles and affiliations.",
         min_length=1,
         max_length=10,
@@ -221,7 +219,7 @@ class Perspectives(BaseModel):
 
     @field_validator("analysts")
     @classmethod
-    def validate_unique_names(cls, v: List[Analyst]) -> List[Analyst]:
+    def validate_unique_names(cls, v: list[Analyst]) -> list[Analyst]:
         """Ensure all analyst names are unique.
 
         Args:
@@ -241,7 +239,7 @@ class Perspectives(BaseModel):
 
     @field_validator("analysts")
     @classmethod
-    def validate_diverse_roles(cls, v: List[Analyst]) -> List[Analyst]:
+    def validate_diverse_roles(cls, v: list[Analyst]) -> list[Analyst]:
         """Warn if analysts have very similar roles.
 
         While not enforcing strict uniqueness (as similar roles can have
@@ -275,7 +273,7 @@ class Perspectives(BaseModel):
         """
         return len(self.analysts)
 
-    def get_analyst_by_name(self, name: str) -> Optional[Analyst]:
+    def get_analyst_by_name(self, name: str) -> Analyst | None:
         """Retrieve an analyst by their name.
 
         Args:
@@ -293,7 +291,7 @@ class Perspectives(BaseModel):
                 return analyst
         return None
 
-    def get_affiliations(self) -> List[str]:
+    def get_affiliations(self) -> list[str]:
         """Get a list of all unique affiliations.
 
         Returns:
@@ -303,7 +301,7 @@ class Perspectives(BaseModel):
             >>> perspectives.get_affiliations()
             ['MIT', 'Stanford University', 'OpenAI']
         """
-        return list(set(analyst.affiliation for analyst in self.analysts))
+        return list({analyst.affiliation for analyst in self.analysts})
 
     def get_summary(self) -> str:
         """Generate a summary of all analysts in the collection.
@@ -343,15 +341,15 @@ class SearchQuery(BaseModel):
         json_schema_extra={"example": {"search_query": "large language models scaling laws 2024"}}
     )
 
-    search_query: Optional[str] = Field(
-        None,
+    search_query: str | None = Field(
+        default=None,
         description="Search query for retrieval.",
         max_length=500,
     )
 
     @field_validator("search_query")
     @classmethod
-    def validate_and_clean_query(cls, v: Optional[str]) -> Optional[str]:
+    def validate_and_clean_query(cls, v: str | None) -> str | None:
         """Clean and validate the search query.
 
         Args:
@@ -427,12 +425,12 @@ class SearchQuery(BaseModel):
 
 
 # Type aliases for common use cases
-AnalystList = List[Analyst]
-SearchQueries = List[SearchQuery]
+AnalystList = list[Analyst]
+SearchQueries = list[SearchQuery]
 
 
 # Validation utilities
-def validate_analyst_diversity(analysts: List[Analyst]) -> bool:
+def validate_analyst_diversity(analysts: list[Analyst]) -> bool:
     """Check if a list of analysts has sufficient diversity.
 
     This function evaluates whether analysts cover different roles and
@@ -453,8 +451,8 @@ def validate_analyst_diversity(analysts: List[Analyst]) -> bool:
     if len(analysts) <= 1:
         return True
 
-    roles = set(analyst.role for analyst in analysts)
-    affiliations = set(analyst.affiliation for analyst in analysts)
+    roles = {analyst.role for analyst in analysts}
+    affiliations = {analyst.affiliation for analyst in analysts}
 
     # Good diversity: unique roles and at least some affiliation diversity
     unique_roles_ratio = len(roles) / len(analysts)

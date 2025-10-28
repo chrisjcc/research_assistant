@@ -3,8 +3,6 @@
 Tests individual node functions with mocked dependencies.
 """
 
-from unittest.mock import MagicMock, Mock, patch
-
 import pytest
 
 from research_assistant.nodes.analyst_nodes import (

@@ -4,7 +4,8 @@ Tests complete graph workflows with mocked external dependencies.
 Uses VCR.py for recording/replaying API calls.
 """
 
-from unittest.mock import Mock, patch
+from contextlib import suppress
+from unittest.mock import Mock
 
 import pytest
 import vcr
@@ -13,10 +14,7 @@ from langchain_core.messages import AIMessage, HumanMessage
 
 from research_assistant.core.state import create_initial_research_state
 from research_assistant.graphs.interview_graph import build_interview_graph
-from research_assistant.graphs.research_graph import (
-    build_research_graph,
-    initiate_all_interviews,
-)
+from research_assistant.graphs.research_graph import build_research_graph, initiate_all_interviews
 
 load_dotenv()  # take environment variables
 
@@ -336,10 +334,8 @@ class TestStatePersistence:
         config = {"configurable": {"thread_id": "test-1"}}
 
         # First invocation (will interrupt)
-        try:
+        with suppress(Exception):
             graph.invoke(initial_state, config)
-        except:
-            pass  # Expected to interrupt
 
         # Get state
         state = graph.get_state(config)
@@ -359,10 +355,8 @@ class TestStatePersistence:
 
         # Try to get state before any execution
         # Should handle gracefully
-        try:
-            state = graph.get_state(config)
-        except:
-            pass  # May not have state yet
+        with suppress(Exception):
+            _ = graph.get_state(config)
 
 
 # ============================================================================
@@ -481,10 +475,8 @@ class TestGraphConfiguration:
 
         # Should interrupt at human_feedback
         # This would require manual continuation in real usage
-        try:
+        with suppress(Exception):
             graph.invoke(initial_state, config)
-        except:
-            pass  # May raise interrupt exception
 
         # State should be saved
         state = graph.get_state(config)
@@ -645,7 +637,7 @@ class TestEdgeCases:
         concluding_llm = Mock()
         call_count = {"count": 0}
 
-        def mock_conclude(messages):
+        def mock_conclude(_messages):
             call_count["count"] += 1
             return AIMessage(content="Thank you so much for your help!", name=None)
 

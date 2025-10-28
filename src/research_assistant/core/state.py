@@ -24,9 +24,9 @@ Example:
 import operator
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Annotated, Any, Dict, List, Optional, TypedDict
+from typing import Annotated, Any, TypedDict
 
-from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, SystemMessage
+from langchain_core.messages import AIMessage, HumanMessage
 from langgraph.graph import MessagesState
 
 from .schemas import Analyst
@@ -75,7 +75,7 @@ class GenerateAnalystsState(TypedDict, total=False):
     topic: str
     max_analysts: int
     human_analyst_feedback: str
-    analysts: List[Analyst]
+    analysts: list[Analyst]
 
 
 class InterviewState(MessagesState, total=False):
@@ -149,7 +149,7 @@ class ResearchGraphState(TypedDict, total=False):
     topic: str
     max_analysts: int
     human_analyst_feedback: str
-    analysts: List[Analyst]
+    analysts: list[Analyst]
     sections: Annotated[list, operator.add]
     introduction: str
     content: str
@@ -184,10 +184,10 @@ class StateMetadata:
     stage: WorkflowStage = WorkflowStage.INITIAL
     timestamp: str = ""
     node_name: str = ""
-    error: Optional[str] = None
+    search_query: str | None = None
     token_count: int = 0
     api_calls: int = 0
-    custom_data: Dict[str, Any] = field(default_factory=dict)
+    custom_data: dict[str, Any] = field(default_factory=dict)
 
 
 # State Validation Functions
@@ -289,9 +289,8 @@ def validate_interview_state(state: InterviewState) -> bool:
             raise ValueError("max_num_turns must be between 1 and 10")
 
     # Validate context if present
-    if "context" in state:
-        if not isinstance(state["context"], list):
-            raise ValueError("context must be a list")
+    if "context" in state and not isinstance(state["context"], list):
+        raise ValueError("context must be a list")
 
     return True
 
@@ -345,9 +344,8 @@ def validate_research_state(state: ResearchGraphState) -> bool:
                 raise ValueError("All analysts must be Analyst instances")
 
     # Validate sections if present
-    if "sections" in state:
-        if not isinstance(state["sections"], list):
-            raise ValueError("sections must be a list")
+    if "sections" in state and not isinstance(state["sections"], list):
+        raise ValueError("sections must be a list")
 
     return True
 
@@ -485,7 +483,7 @@ def get_total_context_length(state: InterviewState) -> int:
     return sum(len(doc) for doc in context if isinstance(doc, str))
 
 
-def get_research_progress(state: ResearchGraphState) -> Dict[str, Any]:
+def get_research_progress(state: ResearchGraphState) -> dict[str, Any]:
     """Get a summary of research progress.
 
     Args:
@@ -533,7 +531,7 @@ def is_research_complete(state: ResearchGraphState) -> bool:
 # State Serialization Functions
 
 
-def serialize_state_for_checkpoint(state: ResearchGraphState) -> Dict[str, Any]:
+def serialize_state_for_checkpoint(state: ResearchGraphState) -> dict[str, Any]:
     """Serialize state for checkpointing/persistence.
 
     Converts state to a JSON-serializable format by handling Pydantic models
@@ -559,7 +557,7 @@ def serialize_state_for_checkpoint(state: ResearchGraphState) -> Dict[str, Any]:
     return serialized
 
 
-def deserialize_state_from_checkpoint(data: Dict[str, Any]) -> ResearchGraphState:
+def deserialize_state_from_checkpoint(data: dict[str, Any]) -> ResearchGraphState:
     """Deserialize state from a checkpoint.
 
     Reconstructs state from a JSON-serializable format, converting
@@ -579,9 +577,8 @@ def deserialize_state_from_checkpoint(data: Dict[str, Any]) -> ResearchGraphStat
     state = ResearchGraphState(**data)
 
     # Convert analyst dictionaries back to Analyst objects
-    if "analysts" in state and state["analysts"]:
-        if isinstance(state["analysts"][0], dict):
-            state["analysts"] = [Analyst(**analyst_dict) for analyst_dict in state["analysts"]]
+    if "analysts" in state and state["analysts"] and isinstance(state["analysts"][0], dict):
+        state["analysts"] = [Analyst(**analyst_dict) for analyst_dict in state["analysts"]]
 
     return state
 
@@ -589,7 +586,7 @@ def deserialize_state_from_checkpoint(data: Dict[str, Any]) -> ResearchGraphStat
 # Utility function for state updates
 
 
-def merge_state_updates(current_state: Dict[str, Any], updates: Dict[str, Any]) -> Dict[str, Any]:
+def merge_state_updates(current_state: dict[str, Any], updates: dict[str, Any]) -> dict[str, Any]:
     """Merge state updates with special handling for annotated fields.
 
     This function properly handles fields with Annotated[list, operator.add]

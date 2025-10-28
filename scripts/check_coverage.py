@@ -7,10 +7,14 @@ Reads configuration from coverage.toml.
 """
 
 import json
+import logging
 import subprocess
 import sys
 import tomllib  # Python 3.11+
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO, format="%(message)s")
 
 CONFIG_PATH = Path("coverage.toml")
 COVERAGE_JSON = Path("coverage.json")
@@ -41,13 +45,13 @@ def main():
     )
 
     if result.returncode != 0:
-        print("⚠️  Warning: coverage json returned non-zero exit code.")
+        logger.warning("⚠️  Warning: coverage json returned non-zero exit code.")
         if result.stderr:
-            print(result.stderr.strip())
+            logger.error(result.stderr.strip())
 
     if not COVERAGE_JSON.exists():
-        print("❌ coverage.json was not generated.")
-        print("   Make sure coverage.toml is valid and that pytest wrote .coverage data.")
+        logger.warning("coverage.json was not generated.")
+        logger.info("Make sure coverage.toml is valid and that pytest wrote .coverage data.")
         sys.exit(1)
 
     data = json.loads(COVERAGE_JSON.read_text())
@@ -65,12 +69,12 @@ def main():
                 break
 
     if failures:
-        print("\n❌ Coverage threshold violations:\n")
+        logger.warning("\nCoverage threshold violations:\n")
         for f, cov, thr in failures:
-            print(f"  {f:<50} {cov:.1f}% < required {thr}%")
+            logger.warning(f"{f:<50} {cov:.1f}% < required {thr}%")
         sys.exit(1)
     else:
-        print("✅ All coverage thresholds met.")
+        logger.info("All coverage thresholds met.")
 
 
 if __name__ == "__main__":

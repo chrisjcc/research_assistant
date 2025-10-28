@@ -17,7 +17,7 @@ Example:
 """
 
 import logging
-from typing import Any, Dict, Optional
+from typing import Any
 
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_openai import ChatOpenAI
@@ -37,8 +37,8 @@ class AnalystCreationError(Exception):
 
 
 def create_analysts(
-    state: GenerateAnalystsState, llm: Optional[ChatOpenAI] = None, detailed_prompts: bool = False
-) -> Dict[str, Any]:
+    state: GenerateAnalystsState, llm: ChatOpenAI | None = None, detailed_prompts: bool = False
+) -> dict[str, Any]:
     """Create analyst personas based on research topic and feedback.
 
     This node generates a diverse set of analyst personas who will conduct
@@ -153,7 +153,7 @@ def create_analysts(
         raise AnalystCreationError(f"Analyst creation failed: {str(e)}") from e
 
 
-def human_feedback(state: GenerateAnalystsState) -> Dict[str, Any]:
+def human_feedback(state: GenerateAnalystsState) -> dict[str, Any]:  # noqa: ARG001
     """No-op node that should be interrupted on for human feedback.
 
     This is a placeholder node where the graph will be interrupted to allow
@@ -247,7 +247,8 @@ def format_analysts_for_review(analysts: list[Analyst]) -> str:
                 f"{i}. {analyst.name}",
                 f"   Role: {analyst.role}",
                 f"   Affiliation: {analyst.affiliation}",
-                f"   Focus: {analyst.description[:100]}{'...' if len(analyst.description) > 100 else ''}",
+                f"   Focus: {analyst.description[:100]}"
+                f"{'...' if len(analyst.description) > 100 else ''}",
                 "",
             ]
         )
@@ -255,7 +256,7 @@ def format_analysts_for_review(analysts: list[Analyst]) -> str:
     return "\n".join(lines)
 
 
-def get_analyst_diversity_metrics(analysts: list[Analyst]) -> Dict[str, Any]:
+def get_analyst_diversity_metrics(analysts: list[Analyst]) -> dict[str, Any]:
     """Calculate diversity metrics for a list of analysts.
 
     Analyzes the analyst team to assess diversity across various dimensions.
@@ -301,8 +302,8 @@ def get_analyst_diversity_metrics(analysts: list[Analyst]) -> Dict[str, Any]:
 
 
 def regenerate_analysts_with_feedback(
-    state: GenerateAnalystsState, llm: Optional[ChatOpenAI] = None
-) -> Dict[str, Any]:
+    state: GenerateAnalystsState, llm: ChatOpenAI | None = None
+) -> dict[str, Any]:
     """Regenerate analysts based on human feedback.
 
     This is a specialized version of create_analysts that emphasizes
@@ -343,7 +344,7 @@ def regenerate_analysts_with_feedback(
 # Node configuration helpers
 
 
-def get_analyst_node_config() -> Dict[str, Any]:
+def get_analyst_node_config() -> dict[str, Any]:
     """Get recommended configuration for analyst nodes.
 
     Returns:
