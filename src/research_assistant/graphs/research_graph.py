@@ -128,8 +128,7 @@ def build_research_graph(
     if interview_graph is None:
         logger.debug("Building default interview subgraph")
         interview_graph = cast(
-            CompiledGraph,
-            build_interview_graph(llm=llm, detailed_prompts=detailed_prompts)
+            CompiledGraph, build_interview_graph(llm=llm, detailed_prompts=detailed_prompts)
         )
 
     # Create graph builder
