@@ -30,6 +30,10 @@ from ..prompts.interview_prompts import get_search_instructions_as_system_messag
 # Configure logger
 logger = logging.getLogger(__name__)
 
+# Load environment variables from .env if available
+from dotenv import load_dotenv
+load_dotenv()
+
 
 class SearchError(Exception):
     """Base exception for search-related errors."""
