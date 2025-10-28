@@ -90,7 +90,9 @@ jobs:
         pytest tests/integration/ -v --cov=src --cov-append --cov-report=xml --cov-report=term --timeout=600
       env:
         PYTHONPATH: ${{ github.workspace }}
-    
+
+    # Upload test coverage visualizes results to Codecov for analysis and PR reporting.
+    # Requires CODECOV_TOKEN (set as a GitHub Actions secret) for authentication.
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v4
       with:
