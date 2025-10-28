@@ -19,10 +19,10 @@ import logging
 import logging.config
 import sys
 import time
-from collections.abc import Callable
+from collections.abc import Callable, Generator
 from contextlib import contextmanager
 from dataclasses import asdict, dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from functools import wraps
 from pathlib import Path
 from typing import Any
@@ -93,7 +93,7 @@ class StructuredFormatter(logging.Formatter):
             JSON-formatted log string.
         """
         log_data = {
-            "timestamp": datetime.now(datetime.UTC).isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),  # noqa: UP017
             "level": record.levelname,
             "logger": record.name,
             "message": record.getMessage(),
@@ -200,6 +200,7 @@ def setup_logging(
     root_logger.handlers.clear()
 
     # Create formatters
+    formatter: logging.Formatter
     if structured:
         formatter = StructuredFormatter()
     elif colored and console:
@@ -299,7 +300,7 @@ def get_logger(name: str) -> logging.Logger:
 @contextmanager
 def log_execution(
     logger: logging.Logger, node_name: str, level: int = logging.INFO, include_metrics: bool = True
-):
+) -> Generator[ExecutionMetrics, None, None]:
     """Context manager for logging node execution with metrics.
 
     Args:
@@ -329,10 +330,19 @@ def log_execution(
 
         metrics.complete(success=True)
 
-        log_data = {"node": node_name, "event": "complete", "duration": f"{metrics.duration:.2f}s"}
+        log_data: dict[str, Any] = {
+            "node": node_name,
+            "event": "complete",
+            "duration": f"{metrics.duration:.2f}s",
+        }
 
         if include_metrics:
-            log_data.update({"tokens_used": metrics.tokens_used, "api_calls": metrics.api_calls})
+            log_data.update(
+                {
+                    "tokens_used": str(metrics.tokens_used),
+                    "api_calls": str(metrics.api_calls),
+                }
+            )
 
             # Update global metrics
             _METRICS_STORE["api_calls"] += metrics.api_calls
@@ -363,7 +373,7 @@ def log_execution(
             {
                 "node": node_name,
                 "error": str(e),
-                "timestamp": datetime.now(datetime.UTC).isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),  # noqa: UP017
             }
         )
 
@@ -371,13 +381,18 @@ def log_execution(
 
 
 @contextmanager
-def log_operation(logger: logging.Logger, operation: str, **context):
+def log_operation(
+    logger: logging.Logger, operation: str, **context: Any
+) -> Generator[None, None, None]:
     """Context manager for logging operations with context.
 
     Args:
         logger: Logger instance.
         operation: Operation description.
         **context: Additional context to log.
+
+    Yields:
+        None
 
     Example:
         >>> with log_operation(logger, "search", query="AI"):
@@ -422,11 +437,16 @@ def log_operation(logger: logging.Logger, operation: str, **context):
 # Decorators for automatic logging
 
 
-def log_function_call(logger: logging.Logger | None = None):
+def log_function_call(
+    logger: logging.Logger | None = None,
+) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
     """Decorator to log function calls with timing.
 
     Args:
         logger: Optional logger instance. If None, creates one from function module.
+
+    Returns:
+        Decorated function.
 
     Example:
         >>> @log_function_call()
@@ -434,13 +454,13 @@ def log_function_call(logger: logging.Logger | None = None):
         ...     return x * 2
     """
 
-    def decorator(func: Callable) -> Callable:
+    def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
         nonlocal logger
         if logger is None:
             logger = get_logger(func.__module__)
 
         @wraps(func)
-        def wrapper(*args, **kwargs):
+        def wrapper(*args: Any, **kwargs: Any) -> Any:
             start_time = time.time()
 
             logger.debug(
@@ -487,7 +507,9 @@ def log_function_call(logger: logging.Logger | None = None):
     return decorator
 
 
-def log_performance(logger: logging.Logger | None = None, threshold_seconds: float = 1.0):
+def log_performance(
+    logger: logging.Logger | None = None, threshold_seconds: float = 1.0
+) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
     """Decorator to log slow function calls.
 
     Only logs if execution time exceeds threshold.
@@ -496,19 +518,22 @@ def log_performance(logger: logging.Logger | None = None, threshold_seconds: flo
         logger: Optional logger instance.
         threshold_seconds: Minimum duration to log.
 
+    Returns:
+        Decorated function.
+
     Example:
         >>> @log_performance(threshold_seconds=0.5)
         ... def slow_function():
         ...     time.sleep(1)
     """
 
-    def decorator(func: Callable) -> Callable:
+    def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
         nonlocal logger
         if logger is None:
             logger = get_logger(func.__module__)
 
         @wraps(func)
-        def wrapper(*args, **kwargs):
+        def wrapper(*args: Any, **kwargs: Any) -> Any:
             start_time = time.time()
             result = func(*args, **kwargs)
             duration = time.time() - start_time

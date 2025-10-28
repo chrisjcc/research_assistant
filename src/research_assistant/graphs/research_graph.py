@@ -10,13 +10,15 @@ Example:
 """
 
 import logging
+from collections.abc import Generator
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 from langchain_core.messages import HumanMessage
 from langchain_openai import ChatOpenAI
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph
+from langgraph.graph.graph import CompiledGraph
 from langgraph.types import Send
 
 from ..core.state import GenerateAnalystsState, ResearchGraphState
@@ -86,11 +88,11 @@ def initiate_all_interviews(state: ResearchGraphState) -> str | list[Send]:
 
 def build_research_graph(
     llm: ChatOpenAI | None = None,
-    interview_graph: StateGraph | None = None,
+    interview_graph: CompiledGraph | None = None,
     enable_interrupts: bool = True,
     checkpointer: Any | None = None,
     detailed_prompts: bool = False,
-) -> StateGraph:
+) -> CompiledGraph:
     """Build the main research graph with all components.
 
     Creates a compiled graph that orchestrates the entire research process:
@@ -102,13 +104,13 @@ def build_research_graph(
 
     Args:
         llm: Optional LLM instance for all nodes.
-        interview_graph: Optional pre-built interview subgraph.
+        interview_graph: Optional pre-built interview subgraph (must be compiled).
         enable_interrupts: Whether to enable human feedback interrupts.
         checkpointer: Optional checkpointer for state persistence.
         detailed_prompts: Whether to use detailed prompts.
 
     Returns:
-        Compiled StateGraph for research workflow.
+        Compiled graph for research workflow.
 
     Example:
         >>> graph = build_research_graph(enable_interrupts=True)
@@ -125,10 +127,13 @@ def build_research_graph(
     # Build interview subgraph if not provided
     if interview_graph is None:
         logger.debug("Building default interview subgraph")
-        interview_graph = build_interview_graph(llm=llm, detailed_prompts=detailed_prompts)
+        interview_graph = cast(
+            CompiledGraph,
+            build_interview_graph(llm=llm, detailed_prompts=detailed_prompts)
+        )
 
     # Create graph builder
-    builder = StateGraph(ResearchGraphState)
+    builder: StateGraph[ResearchGraphState] = StateGraph(ResearchGraphState)
 
     # Define node functions with dependency injection
     def create_analysts_node(state: ResearchGraphState) -> dict[str, Any]:
@@ -139,22 +144,28 @@ def build_research_graph(
             "human_analyst_feedback": state.get("human_analyst_feedback", ""),
             "analysts": state.get("analysts", []),
         }
-        return create_analysts(analysts_state, llm=llm, detailed_prompts=detailed_prompts)
+        result = create_analysts(analysts_state, llm=llm, detailed_prompts=detailed_prompts)
+        return cast(dict[str, Any], result)
 
     def human_feedback_node(state: ResearchGraphState) -> dict[str, Any]:
-        return human_feedback(state)
+        result = human_feedback(state)
+        return cast(dict[str, Any], result)
 
     def write_report_node(state: ResearchGraphState) -> dict[str, Any]:
-        return write_report(state, llm=llm, detailed_prompts=detailed_prompts)
+        result = write_report(state, llm=llm, detailed_prompts=detailed_prompts)
+        return cast(dict[str, Any], result)
 
     def write_introduction_node(state: ResearchGraphState) -> dict[str, Any]:
-        return write_introduction(state, llm=llm, detailed_prompts=detailed_prompts)
+        result = write_introduction(state, llm=llm, detailed_prompts=detailed_prompts)
+        return cast(dict[str, Any], result)
 
     def write_conclusion_node(state: ResearchGraphState) -> dict[str, Any]:
-        return write_conclusion(state, llm=llm, detailed_prompts=detailed_prompts)
+        result = write_conclusion(state, llm=llm, detailed_prompts=detailed_prompts)
+        return cast(dict[str, Any], result)
 
     def finalize_report_node(state: ResearchGraphState) -> dict[str, Any]:
-        return finalize_report(state)
+        result = finalize_report(state)
+        return cast(dict[str, Any], result)
 
     # Add nodes
     builder.add_node("create_analysts", create_analysts_node)
@@ -189,7 +200,7 @@ def build_research_graph(
     builder.add_edge("finalize_report", END)
 
     # Compile with optional interrupt and checkpointer
-    compile_kwargs = {}
+    compile_kwargs: dict[str, Any] = {}
 
     if enable_interrupts:
         compile_kwargs["interrupt_before"] = ["human_feedback"]
@@ -363,7 +374,7 @@ def run_research(
         final_state = graph.invoke(initial_state, config)
 
         logger.info("Research completed successfully")
-        return final_state
+        return cast(dict[str, Any], final_state)
 
     except Exception as e:
         logger.error(f"Research failed: {str(e)}", exc_info=True)
@@ -376,7 +387,7 @@ def stream_research(
     human_analyst_feedback: str = "approve",
     detailed_prompts: bool = False,
     thread_id: str = "default",
-):
+) -> Generator[tuple[str, Any], None, None]:
     """Stream research execution for real-time updates.
 
     Args:
@@ -431,7 +442,7 @@ def stream_research(
 
 # Visualization helper
 def visualize_research_graph(
-    graph: StateGraph | None = None, output_path: str = "research_graph.png"
+    graph: CompiledGraph | None = None, output_path: str = "research_graph.png"
 ) -> None:
     """Visualize the research graph structure.
 
@@ -454,11 +465,11 @@ def visualize_research_graph(
         img_data = graph.get_graph().draw_mermaid_png()
 
         # Save to file
-        output_path = Path(output_path)
-        with output_path.open("wb") as f:
+        output_path_obj: Path = Path(output_path)
+        with output_path_obj.open("wb") as f:
             f.write(img_data)
 
-        logger.info(f"Graph visualization saved to {output_path}")
+        logger.info(f"Graph visualization saved to {output_path_obj}")
 
         # Display in notebook if available
         with suppress(Exception):
@@ -472,7 +483,7 @@ def visualize_research_graph(
 
 # Utility for handling interrupted execution
 def continue_research(
-    graph: StateGraph, thread_id: str, human_feedback: str | None = None
+    graph: CompiledGraph, thread_id: str, human_feedback: str | None = None
 ) -> dict[str, Any]:
     """Continue research execution after interrupt.
 
@@ -480,7 +491,7 @@ def continue_research(
     the feedback and continuing execution.
 
     Args:
-        graph: The research graph instance.
+        graph: The research graph instance (must be compiled).
         thread_id: Thread ID of the interrupted execution.
         human_feedback: Updated human feedback. None to continue with existing state.
 
@@ -520,20 +531,20 @@ def continue_research(
     try:
         final_state = graph.invoke(None, config)
         logger.info("Research continuation completed")
-        return final_state
+        return cast(dict[str, Any], final_state)
     except Exception as e:
         logger.error(f"Failed to continue research: {str(e)}", exc_info=True)
         raise
 
 
-def get_research_state(graph: StateGraph, thread_id: str) -> dict[str, Any]:
+def get_research_state(graph: CompiledGraph, thread_id: str) -> dict[str, Any]:
     """Get the current state of a research execution.
 
     Useful for inspecting state during or after execution, especially
     when using interrupts.
 
     Args:
-        graph: The research graph instance.
+        graph: The research graph instance (must be compiled).
         thread_id: Thread ID of the execution.
 
     Returns:
@@ -547,19 +558,19 @@ def get_research_state(graph: StateGraph, thread_id: str) -> dict[str, Any]:
 
     try:
         state_snapshot = graph.get_state(config)
-        return state_snapshot.values
+        return cast(dict[str, Any], state_snapshot.values)
     except Exception as e:
         logger.error(f"Failed to get state: {str(e)}")
         raise ValueError(f"No state found for thread_id: {thread_id}") from e
 
 
 def list_research_checkpoints(
-    graph: StateGraph, thread_id: str, limit: int = 10
+    graph: CompiledGraph, thread_id: str, limit: int = 10
 ) -> list[dict[str, Any]]:
     """List checkpoints for a research execution.
 
     Args:
-        graph: The research graph instance.
+        graph: The research graph instance (must be compiled).
         thread_id: Thread ID of the execution.
         limit: Maximum number of checkpoints to return.
 
