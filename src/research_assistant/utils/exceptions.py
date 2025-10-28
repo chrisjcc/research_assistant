@@ -80,7 +80,7 @@ class ResearchAssistantError(Exception):
 class ConfigurationError(ResearchAssistantError):
     """Raised when configuration is invalid or missing."""
 
-    def __init__(self, message: str, config_key: str | None = None, **kwargs):
+    def __init__(self, message: str, config_key: str | None = None, **kwargs: Any):
         details = kwargs.pop("details", {})
         if config_key:
             details["config_key"] = config_key
@@ -90,7 +90,7 @@ class ConfigurationError(ResearchAssistantError):
 class MissingAPIKeyError(ConfigurationError):
     """Raised when required API key is missing."""
 
-    def __init__(self, service: str, env_var: str, **kwargs):
+    def __init__(self, service: str, env_var: str, **kwargs: Any):
         message = f"Missing API key for {service}. Set {env_var} environment variable."
         details = {"service": service, "env_var": env_var}
         super().__init__(message, details=details, **kwargs)
@@ -108,7 +108,7 @@ class AnalystError(ResearchAssistantError):
 class AnalystCreationError(AnalystError):
     """Raised when analyst creation fails."""
 
-    def __init__(self, message: str, topic: str | None = None, **kwargs):
+    def __init__(self, message: str, topic: str | None = None, **kwargs: Any):
         details = kwargs.pop("details", {})
         if topic:
             details["topic"] = topic
@@ -118,7 +118,7 @@ class AnalystCreationError(AnalystError):
 class AnalystValidationError(AnalystError):
     """Raised when analyst validation fails."""
 
-    def __init__(self, message: str, analyst_name: str | None = None, **kwargs):
+    def __init__(self, message: str, analyst_name: str | None = None, **kwargs: Any):
         details = kwargs.pop("details", {})
         if analyst_name:
             details["analyst_name"] = analyst_name
@@ -128,7 +128,7 @@ class AnalystValidationError(AnalystError):
 class InsufficientAnalystsError(AnalystError):
     """Raised when not enough analysts are generated."""
 
-    def __init__(self, expected: int, actual: int, **kwargs):
+    def __init__(self, expected: int, actual: int, **kwargs: Any):
         message = f"Expected {expected} analysts, but only {actual} were generated"
         details = {"expected": expected, "actual": actual}
         super().__init__(message, details=details, recoverable=True, **kwargs)
@@ -146,7 +146,7 @@ class InterviewError(ResearchAssistantError):
 class QuestionGenerationError(InterviewError):
     """Raised when question generation fails."""
 
-    def __init__(self, message: str, analyst: str | None = None, **kwargs):
+    def __init__(self, message: str, analyst: str | None = None, **kwargs: Any):
         details = kwargs.pop("details", {})
         if analyst:
             details["analyst"] = analyst
@@ -156,7 +156,7 @@ class QuestionGenerationError(InterviewError):
 class AnswerGenerationError(InterviewError):
     """Raised when answer generation fails."""
 
-    def __init__(self, message: str, context_available: bool = False, **kwargs):
+    def __init__(self, message: str, context_available: bool = False, **kwargs: Any):
         details = kwargs.pop("details", {})
         details["context_available"] = context_available
         super().__init__(message, details=details, recoverable=True, **kwargs)
@@ -165,7 +165,7 @@ class AnswerGenerationError(InterviewError):
 class InterviewTimeoutError(InterviewError):
     """Raised when interview exceeds time limit."""
 
-    def __init__(self, timeout_seconds: float, **kwargs):
+    def __init__(self, timeout_seconds: float, **kwargs: Any):
         message = f"Interview timed out after {timeout_seconds} seconds"
         details = {"timeout_seconds": timeout_seconds}
         super().__init__(message, details=details, recoverable=False, **kwargs)
@@ -183,7 +183,7 @@ class SearchError(ResearchAssistantError):
 class WebSearchError(SearchError):
     """Raised when web search fails."""
 
-    def __init__(self, message: str, query: str | None = None, **kwargs):
+    def __init__(self, message: str, query: str | None = None, **kwargs: Any):
         details = kwargs.pop("details", {})
         if query:
             details["query"] = query
@@ -193,7 +193,7 @@ class WebSearchError(SearchError):
 class WikipediaSearchError(SearchError):
     """Raised when Wikipedia search fails."""
 
-    def __init__(self, message: str, query: str | None = None, **kwargs):
+    def __init__(self, message: str, query: str | None = None, **kwargs: Any):
         details = kwargs.pop("details", {})
         if query:
             details["query"] = query
@@ -203,7 +203,7 @@ class WikipediaSearchError(SearchError):
 class SearchTimeoutError(SearchError):
     """Raised when search times out."""
 
-    def __init__(self, query: str, timeout_seconds: float, **kwargs):
+    def __init__(self, query: str, timeout_seconds: float, **kwargs: Any):
         message = f"Search timed out after {timeout_seconds}s for query: {query}"
         details = {"query": query, "timeout_seconds": timeout_seconds}
         super().__init__(message, details=details, recoverable=True, **kwargs)
@@ -212,9 +212,9 @@ class SearchTimeoutError(SearchError):
 class RateLimitError(SearchError):
     """Raised when rate limit is exceeded."""
 
-    def __init__(self, service: str, retry_after: float | None = None, **kwargs):
+    def __init__(self, service: str, retry_after: float | None = None, **kwargs: Any):
         message = f"Rate limit exceeded for {service}"
-        details = {"service": service}
+        details: dict[str, Any] = {"service": service}
         if retry_after:
             details["retry_after_seconds"] = retry_after
         super().__init__(message, details=details, recoverable=True, **kwargs)
@@ -223,7 +223,7 @@ class RateLimitError(SearchError):
 class NoSearchResultsError(SearchError):
     """Raised when search returns no results."""
 
-    def __init__(self, query: str, search_type: str = "web", **kwargs):
+    def __init__(self, query: str, search_type: str = "web", **kwargs: Any):
         message = f"No results found for {search_type} search: {query}"
         details = {"query": query, "search_type": search_type}
         super().__init__(message, details=details, recoverable=True, **kwargs)
@@ -241,7 +241,7 @@ class ReportError(ResearchAssistantError):
 class SectionGenerationError(ReportError):
     """Raised when section generation fails."""
 
-    def __init__(self, message: str, section_type: str | None = None, **kwargs):
+    def __init__(self, message: str, section_type: str | None = None, **kwargs: Any):
         details = kwargs.pop("details", {})
         if section_type:
             details["section_type"] = section_type
@@ -251,7 +251,7 @@ class SectionGenerationError(ReportError):
 class ReportSynthesisError(ReportError):
     """Raised when report synthesis fails."""
 
-    def __init__(self, message: str, num_sections: int | None = None, **kwargs):
+    def __init__(self, message: str, num_sections: int | None = None, **kwargs: Any):
         details = kwargs.pop("details", {})
         if num_sections is not None:
             details["num_sections"] = num_sections
@@ -261,16 +261,16 @@ class ReportSynthesisError(ReportError):
 class MissingSectionsError(ReportError):
     """Raised when required sections are missing."""
 
-    def __init__(self, missing_sections: list, **kwargs):
+    def __init__(self, missing_sections: list[Any], **kwargs: Any):
         message = f"Missing required sections: {', '.join(missing_sections)}"
-        details = {"missing_sections": missing_sections}
+        details: dict[str, Any] = {"missing_sections": missing_sections}
         super().__init__(message, details=details, recoverable=False, **kwargs)
 
 
 class InvalidReportFormatError(ReportError):
     """Raised when report format is invalid."""
 
-    def __init__(self, message: str, format_type: str | None = None, **kwargs):
+    def __init__(self, message: str, format_type: str | None = None, **kwargs: Any):
         details = kwargs.pop("details", {})
         if format_type:
             details["format_type"] = format_type
@@ -294,7 +294,7 @@ class LLMAPIError(LLMError):
         message: str,
         status_code: int | None = None,
         api_error: str | None = None,
-        **kwargs,
+        **kwargs: Any,
     ):
         details = kwargs.pop("details", {})
         if status_code:
@@ -307,7 +307,7 @@ class LLMAPIError(LLMError):
 class LLMTimeoutError(LLMError):
     """Raised when LLM request times out."""
 
-    def __init__(self, timeout_seconds: float, **kwargs):
+    def __init__(self, timeout_seconds: float, **kwargs: Any):
         message = f"LLM request timed out after {timeout_seconds}s"
         details = {"timeout_seconds": timeout_seconds}
         super().__init__(message, details=details, recoverable=True, **kwargs)
@@ -316,7 +316,7 @@ class LLMTimeoutError(LLMError):
 class LLMResponseError(LLMError):
     """Raised when LLM response is invalid or malformed."""
 
-    def __init__(self, message: str, response_type: str | None = None, **kwargs):
+    def __init__(self, message: str, response_type: str | None = None, **kwargs: Any):
         details = kwargs.pop("details", {})
         if response_type:
             details["response_type"] = response_type
@@ -326,7 +326,7 @@ class LLMResponseError(LLMError):
 class TokenLimitError(LLMError):
     """Raised when token limit is exceeded."""
 
-    def __init__(self, tokens_used: int, token_limit: int, **kwargs):
+    def __init__(self, tokens_used: int, token_limit: int, **kwargs: Any):
         message = f"Token limit exceeded: {tokens_used} > {token_limit}"
         details = {"tokens_used": tokens_used, "token_limit": token_limit}
         super().__init__(message, details=details, recoverable=False, **kwargs)
@@ -344,7 +344,7 @@ class StateError(ResearchAssistantError):
 class InvalidStateError(StateError):
     """Raised when state is invalid."""
 
-    def __init__(self, message: str, state_key: str | None = None, **kwargs):
+    def __init__(self, message: str, state_key: str | None = None, **kwargs: Any):
         details = kwargs.pop("details", {})
         if state_key:
             details["state_key"] = state_key
@@ -354,7 +354,7 @@ class InvalidStateError(StateError):
 class MissingStateFieldError(StateError):
     """Raised when required state field is missing."""
 
-    def __init__(self, field_name: str, node_name: str | None = None, **kwargs):
+    def __init__(self, field_name: str, node_name: str | None = None, **kwargs: Any):
         message = f"Missing required state field: {field_name}"
         details = {"field_name": field_name}
         if node_name:
@@ -365,7 +365,7 @@ class MissingStateFieldError(StateError):
 class StateValidationError(StateError):
     """Raised when state validation fails."""
 
-    def __init__(self, message: str, validation_errors: list | None = None, **kwargs):
+    def __init__(self, message: str, validation_errors: list[Any] | None = None, **kwargs: Any):
         details = kwargs.pop("details", {})
         if validation_errors:
             details["validation_errors"] = validation_errors
@@ -384,7 +384,7 @@ class GraphError(ResearchAssistantError):
 class GraphExecutionError(GraphError):
     """Raised when graph execution fails."""
 
-    def __init__(self, message: str, node_name: str | None = None, **kwargs):
+    def __init__(self, message: str, node_name: str | None = None, **kwargs: Any):
         details = kwargs.pop("details", {})
         if node_name:
             details["node_name"] = node_name
@@ -394,7 +394,7 @@ class GraphExecutionError(GraphError):
 class NodeExecutionError(GraphError):
     """Raised when a specific node fails."""
 
-    def __init__(self, node_name: str, original_error: Exception | None = None, **kwargs):
+    def __init__(self, node_name: str, original_error: Exception | None = None, **kwargs: Any):
         message = f"Node '{node_name}' execution failed"
         details = kwargs.pop("details", {})
         details["node_name"] = node_name
@@ -406,7 +406,7 @@ class NodeExecutionError(GraphError):
 class GraphInterruptError(GraphError):
     """Raised when graph is interrupted unexpectedly."""
 
-    def __init__(self, message: str, checkpoint_id: str | None = None, **kwargs):
+    def __init__(self, message: str, checkpoint_id: str | None = None, **kwargs: Any):
         details = kwargs.pop("details", {})
         if checkpoint_id:
             details["checkpoint_id"] = checkpoint_id
@@ -425,7 +425,7 @@ class DataError(ResearchAssistantError):
 class DataValidationError(DataError):
     """Raised when data validation fails."""
 
-    def __init__(self, message: str, field_name: str | None = None, **kwargs):
+    def __init__(self, message: str, field_name: str | None = None, **kwargs: Any):
         details = kwargs.pop("details", {})
         if field_name:
             details["field_name"] = field_name
@@ -435,7 +435,7 @@ class DataValidationError(DataError):
 class DataTransformationError(DataError):
     """Raised when data transformation fails."""
 
-    def __init__(self, message: str, transform_type: str | None = None, **kwargs):
+    def __init__(self, message: str, transform_type: str | None = None, **kwargs: Any):
         details = kwargs.pop("details", {})
         if transform_type:
             details["transform_type"] = transform_type
@@ -454,7 +454,7 @@ class FileError(ResearchAssistantError):
 class FileReadError(FileError):
     """Raised when file cannot be read."""
 
-    def __init__(self, filepath: str, original_error: Exception | None = None, **kwargs):
+    def __init__(self, filepath: str, original_error: Exception | None = None, **kwargs: Any):
         message = f"Failed to read file: {filepath}"
         details = {"filepath": filepath}
         if original_error:
@@ -465,7 +465,7 @@ class FileReadError(FileError):
 class FileWriteError(FileError):
     """Raised when file cannot be written."""
 
-    def __init__(self, filepath: str, original_error: Exception | None = None, **kwargs):
+    def __init__(self, filepath: str, original_error: Exception | None = None, **kwargs: Any):
         message = f"Failed to write file: {filepath}"
         details = {"filepath": filepath}
         if original_error:
@@ -476,7 +476,7 @@ class FileWriteError(FileError):
 class InvalidFileFormatError(FileError):
     """Raised when file format is invalid."""
 
-    def __init__(self, filepath: str, expected_format: str, **kwargs):
+    def __init__(self, filepath: str, expected_format: str, **kwargs: Any):
         message = f"Invalid file format: {filepath} (expected {expected_format})"
         details = {"filepath": filepath, "expected_format": expected_format}
         super().__init__(message, details=details, recoverable=False, **kwargs)
