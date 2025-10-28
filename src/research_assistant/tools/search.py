@@ -20,6 +20,8 @@ from datetime import datetime, timedelta, timezone  # noqa: UP017
 from functools import wraps
 from typing import Any
 
+# Load environment variables from .env if available
+from dotenv import load_dotenv
 from langchain_community.document_loaders import WikipediaLoader
 from langchain_openai import ChatOpenAI
 from langchain_tavily import TavilySearch
@@ -30,8 +32,6 @@ from ..prompts.interview_prompts import get_search_instructions_as_system_messag
 # Configure logger
 logger = logging.getLogger(__name__)
 
-# Load environment variables from .env if available
-from dotenv import load_dotenv
 load_dotenv()
 
 

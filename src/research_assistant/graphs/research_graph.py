@@ -15,10 +15,11 @@ from pathlib import Path
 from typing import Any, cast
 
 from langchain_core.messages import HumanMessage
+from langchain_core.runnables import RunnableConfig
 from langchain_openai import ChatOpenAI
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph
-from langgraph.graph import CompiledStateGraph
+from langgraph.graph.state import CompiledStateGraph
 from langgraph.types import Send
 
 from ..core.state import GenerateAnalystsState, ResearchGraphState
@@ -88,11 +89,11 @@ def initiate_all_interviews(state: ResearchGraphState) -> str | list[Send]:
 
 def build_research_graph(
     llm: ChatOpenAI | None = None,
-    interview_graph: CompiledStateGraph | None = None,
+    interview_graph: CompiledStateGraph[Any, Any, Any, Any] | None = None,
     enable_interrupts: bool = True,
     checkpointer: Any | None = None,
     detailed_prompts: bool = False,
-) -> CompiledStateGraph:
+) -> CompiledStateGraph[Any, Any, Any, Any]:
     """Build the main research graph with all components.
 
     Creates a compiled graph that orchestrates the entire research process:
@@ -128,7 +129,8 @@ def build_research_graph(
     if interview_graph is None:
         logger.debug("Building default interview subgraph")
         interview_graph = cast(
-            CompiledStateGraph, build_interview_graph(llm=llm, detailed_prompts=detailed_prompts)
+            CompiledStateGraph[Any, Any, Any, Any],
+            build_interview_graph(llm=llm, detailed_prompts=detailed_prompts),
         )
 
     # Create graph builder
@@ -360,7 +362,7 @@ def run_research(
             continue
 
     # Configure execution
-    config = {"configurable": {"thread_id": thread_id}}
+    config: RunnableConfig = {"configurable": {"thread_id": thread_id}}
 
     try:
         # Invoke graph
@@ -386,8 +388,9 @@ def stream_research(
     human_analyst_feedback: str = "approve",
     detailed_prompts: bool = False,
     thread_id: str = "default",
-) -> Generator[tuple[str, Any], None, None]:
-    """Stream research execution for real-time updates.
+) -> Generator[dict[str, Any] | Any, None, None]:
+    """
+    Stream research execution for real-time updates.
 
     Args:
         topic: Research topic to investigate.
@@ -397,11 +400,11 @@ def stream_research(
         thread_id: Thread ID for checkpointing.
 
     Yields:
-        State updates as the graph executes.
-
+        Updates emitted by the graph. Each item might be a dict with
+        state updates or other output types depending on stream_mode.
     Example:
         >>> for update in stream_research(topic="AI Ethics"):
-        ...     print(f"Node: {update[0]}, State keys: {list(update[1].keys())}")
+        ...     print(update)
     """
     logger.info(f"Starting streaming research on topic: {topic}")
 
@@ -426,7 +429,7 @@ def stream_research(
     }
 
     # Configure execution
-    config = {"configurable": {"thread_id": thread_id}}
+    config: RunnableConfig = {"configurable": {"thread_id": thread_id}}
 
     try:
         # Stream execution
@@ -441,7 +444,8 @@ def stream_research(
 
 # Visualization helper
 def visualize_research_graph(
-    graph: CompiledStateGraph | None = None, output_path: str = "research_graph.png"
+    graph: CompiledStateGraph[Any, Any, Any, Any] | None = None,
+    output_path: str = "research_graph.png",
 ) -> None:
     """Visualize the research graph structure.
 
@@ -482,7 +486,7 @@ def visualize_research_graph(
 
 # Utility for handling interrupted execution
 def continue_research(
-    graph: CompiledStateGraph, thread_id: str, human_feedback: str | None = None
+    graph: CompiledStateGraph[Any, Any, Any, Any], thread_id: str, human_feedback: str | None = None
 ) -> dict[str, Any]:
     """Continue research execution after interrupt.
 
@@ -509,7 +513,7 @@ def continue_research(
     """
     logger.info(f"Continuing research for thread_id: {thread_id}")
 
-    config = {"configurable": {"thread_id": thread_id}}
+    config: RunnableConfig = {"configurable": {"thread_id": thread_id}}
 
     # Get current state
     try:
@@ -536,7 +540,9 @@ def continue_research(
         raise
 
 
-def get_research_state(graph: CompiledStateGraph, thread_id: str) -> dict[str, Any]:
+def get_research_state(
+    graph: CompiledStateGraph[Any, Any, Any, Any], thread_id: str
+) -> dict[str, Any]:
     """Get the current state of a research execution.
 
     Useful for inspecting state during or after execution, especially
@@ -553,7 +559,7 @@ def get_research_state(graph: CompiledStateGraph, thread_id: str) -> dict[str, A
         >>> state = get_research_state(graph, "research-1")
         >>> print(f"Analysts: {len(state['analysts'])}")
     """
-    config = {"configurable": {"thread_id": thread_id}}
+    config: RunnableConfig = {"configurable": {"thread_id": thread_id}}
 
     try:
         state_snapshot = graph.get_state(config)
@@ -564,7 +570,7 @@ def get_research_state(graph: CompiledStateGraph, thread_id: str) -> dict[str, A
 
 
 def list_research_checkpoints(
-    graph: CompiledStateGraph, thread_id: str, limit: int = 10
+    graph: CompiledStateGraph[Any, Any, Any, Any], thread_id: str, limit: int = 10
 ) -> list[dict[str, Any]]:
     """List checkpoints for a research execution.
 
@@ -581,7 +587,7 @@ def list_research_checkpoints(
         >>> for cp in checkpoints:
         ...     print(f"Step: {cp['step']}, Node: {cp['node']}")
     """
-    config = {"configurable": {"thread_id": thread_id}}
+    config: RunnableConfig = {"configurable": {"thread_id": thread_id}}
 
     try:
         history = []
@@ -654,9 +660,10 @@ def create_research_system(
     )
 
     # Build main research graph
+    compiled_interview_graph = interview_graph.compile()
     research_graph = build_research_graph(
         llm=llm,
-        interview_graph=interview_graph,
+        interview_graph=compiled_interview_graph,
         enable_interrupts=enable_interrupts,
         detailed_prompts=detailed_prompts,
     )
@@ -730,7 +737,7 @@ initial_state = {
 }
 
 # Start execution (will pause at human_feedback)
-config = {"configurable": {"thread_id": "research-1"}}
+config: RunnableConfig = {"configurable": {"thread_id": thread_id}}
 graph.invoke(initial_state, config)
 
 # Review analysts and provide feedback
