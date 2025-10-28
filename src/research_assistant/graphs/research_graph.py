@@ -18,7 +18,7 @@ from langchain_core.messages import HumanMessage
 from langchain_openai import ChatOpenAI
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph
-from langgraph.graph.graph import CompiledGraph
+from langgraph.graph import CompiledStateGraph
 from langgraph.types import Send
 
 from ..core.state import GenerateAnalystsState, ResearchGraphState
@@ -88,11 +88,11 @@ def initiate_all_interviews(state: ResearchGraphState) -> str | list[Send]:
 
 def build_research_graph(
     llm: ChatOpenAI | None = None,
-    interview_graph: CompiledGraph | None = None,
+    interview_graph: CompiledStateGraph | None = None,
     enable_interrupts: bool = True,
     checkpointer: Any | None = None,
     detailed_prompts: bool = False,
-) -> CompiledGraph:
+) -> CompiledStateGraph:
     """Build the main research graph with all components.
 
     Creates a compiled graph that orchestrates the entire research process:
@@ -128,7 +128,7 @@ def build_research_graph(
     if interview_graph is None:
         logger.debug("Building default interview subgraph")
         interview_graph = cast(
-            CompiledGraph, build_interview_graph(llm=llm, detailed_prompts=detailed_prompts)
+            CompiledStateGraph, build_interview_graph(llm=llm, detailed_prompts=detailed_prompts)
         )
 
     # Create graph builder
@@ -441,7 +441,7 @@ def stream_research(
 
 # Visualization helper
 def visualize_research_graph(
-    graph: CompiledGraph | None = None, output_path: str = "research_graph.png"
+    graph: CompiledStateGraph | None = None, output_path: str = "research_graph.png"
 ) -> None:
     """Visualize the research graph structure.
 
@@ -482,7 +482,7 @@ def visualize_research_graph(
 
 # Utility for handling interrupted execution
 def continue_research(
-    graph: CompiledGraph, thread_id: str, human_feedback: str | None = None
+    graph: CompiledStateGraph, thread_id: str, human_feedback: str | None = None
 ) -> dict[str, Any]:
     """Continue research execution after interrupt.
 
@@ -536,7 +536,7 @@ def continue_research(
         raise
 
 
-def get_research_state(graph: CompiledGraph, thread_id: str) -> dict[str, Any]:
+def get_research_state(graph: CompiledStateGraph, thread_id: str) -> dict[str, Any]:
     """Get the current state of a research execution.
 
     Useful for inspecting state during or after execution, especially
@@ -564,7 +564,7 @@ def get_research_state(graph: CompiledGraph, thread_id: str) -> dict[str, Any]:
 
 
 def list_research_checkpoints(
-    graph: CompiledGraph, thread_id: str, limit: int = 10
+    graph: CompiledStateGraph, thread_id: str, limit: int = 10
 ) -> list[dict[str, Any]]:
     """List checkpoints for a research execution.
 
