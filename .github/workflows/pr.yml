@@ -13,6 +13,8 @@ permissions:
 jobs:
   pr-validation:
     runs-on: ubuntu-latest
+    env:
+      TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
     if: github.event.pull_request.draft == false
     steps:
     - uses: actions/checkout@v4
