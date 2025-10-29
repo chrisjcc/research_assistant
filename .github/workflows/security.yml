@@ -61,7 +61,7 @@ jobs:
   
     # Push events: scan the pushed range (before -> after)
     - name: TruffleHog (push)
-      if: ${{ github.event_name == 'push' && github.event.before != github.sha }}
+      if: ${{ github.event_name == 'push' and github.event.before != github.sha }}
       uses: trufflesecurity/trufflehog@v3
       with:
         path: .
@@ -71,7 +71,7 @@ jobs:
   
     # Edge case: single-commit or same-SHA push — skip cleanly
     - name: TruffleHog (push - nothing to diff)
-      if: ${{ github.event_name == 'push' && github.event.before == github.sha }}
+      if: ${{ github.event_name == 'push' and github.event.before == github.sha }}
       run: echo "TruffleHog: BASE and HEAD are identical on this push; skipping diff scan."
   
     # PRs: scan between PR base and head
@@ -84,7 +84,7 @@ jobs:
         head: ${{ github.event.pull_request.head.sha }}
         extra_args: --debug --only-verified
   
-    # Scheduled / manual runs: scan recent history (e.g., last 24h on default branch)
+    # Scheduled / manual runs: scan recent history
     - name: TruffleHog (scheduled/manual)
       if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
       shell: bash
