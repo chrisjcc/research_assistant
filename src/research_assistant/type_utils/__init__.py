@@ -15,9 +15,9 @@ Example:
 """
 
 # Protocols
-from .protocols import CacheProvider  # Type aliases
 from .protocols import (
     AnalystList,
+    CacheProvider,
     Checkpointer,
     Comparable,
     ConfigDict,
@@ -43,11 +43,18 @@ from .protocols import (
 
 # Validation
 from .validation import (
+    ListValidator,
+    NumberValidator,
+    StringValidator,
     TypeValidator,
+    ValidationResult,
     validate_dict_keys,
     validate_function_args,
+    validate_input_model,
     validate_list_length,
+    validate_model_list,
     validate_non_empty_string,
+    validate_output_model,
     validate_positive_number,
     validate_pydantic_model,
     validate_range,
