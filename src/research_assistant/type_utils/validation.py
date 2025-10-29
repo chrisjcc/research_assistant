@@ -13,9 +13,12 @@ Example:
 import inspect
 from collections.abc import Callable
 from functools import wraps
-from typing import Any, Union, get_args, get_origin
+from typing import Any, ParamSpec, TypeVar, Union, get_args, get_origin
 
 from pydantic import BaseModel, ValidationError
+
+P = ParamSpec("P")
+R = TypeVar("R")
 
 
 def validate_type(value: Any, expected_type: type, param_name: str = "value") -> bool:
@@ -84,7 +87,7 @@ def validate_type(value: Any, expected_type: type, param_name: str = "value") ->
     return True
 
 
-def validate_function_args(func: Callable) -> Callable:
+def validate_function_args(func: Callable[P, R]) -> Callable[P, R]:
     """Decorator to validate function arguments against type hints.
 
     Args:
@@ -104,7 +107,7 @@ def validate_function_args(func: Callable) -> Callable:
     sig = inspect.signature(func)
 
     @wraps(func)
-    def wrapper(*args, **kwargs):
+    def wrapper(*args: Any, **kwargs: Any) -> Any:
         # Bind arguments
         bound = sig.bind(*args, **kwargs)
         bound.apply_defaults()
@@ -138,7 +141,7 @@ class TypeValidator:
         >>> validator.validate(-5, "positive_int")  # Raises ValueError
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize type validator."""
         self.rules: dict[str, Callable[[Any], bool]] = {}
         self.error_messages: dict[str, str] = {}
@@ -363,8 +366,4 @@ def validate_pydantic_model(
         return model_class(**data)
     except ValidationError as e:
         # Re-raise with more context
-        errors = e.errors()
-        raise ValidationError.from_exception_data(
-            title=f"Validation error for {model_class.__name__}",
-            line_errors=errors,
-        ) from e
+        raise ValueError(f"Validation error for {model_class.__name__}: {e}") from e

@@ -11,10 +11,11 @@ Example:
 """
 
 import logging
-from typing import Any
+from typing import Any, cast
 
 from langchain_openai import ChatOpenAI
-from langgraph.graph import END, START, StateGraph
+from langgraph.graph import END, START
+from langgraph.graph.state import CompiledStateGraph, StateGraph
 
 from ..core.state import InterviewState
 from ..nodes.interview_nodes import (
@@ -164,7 +165,7 @@ def build_interview_graph(
     wiki_search_tool: WikipediaSearchTool | None = None,
     query_generator: SearchQueryGenerator | None = None,
     detailed_prompts: bool = False,
-) -> StateGraph:
+) -> CompiledStateGraph[InterviewState, None, InterviewState, InterviewState]:
     """Build the interview subgraph.
 
     Creates a compiled graph that manages the interview process between an
@@ -255,8 +256,9 @@ def build_interview_graph(
     builder.add_edge("write_section", END)
 
     # Compile the graph
-    graph = builder.compile()
-
+    graph = cast(
+        CompiledStateGraph[InterviewState, None, InterviewState, InterviewState], builder.compile()
+    )
     logger.info("Interview subgraph built successfully")
 
     return graph
@@ -329,7 +331,8 @@ def get_interview_graph_info() -> dict[str, Any]:
 
 # Visualization helper
 def visualize_interview_graph(
-    graph: StateGraph | None = None, output_path: str = "interview_graph.png"
+    graph: CompiledStateGraph[InterviewState, None, InterviewState, InterviewState] | None = None,
+    output_path: str = "interview_graph.png",
 ) -> None:
     """Visualize the interview graph structure.
 
@@ -342,6 +345,7 @@ def visualize_interview_graph(
     """
     try:
         from contextlib import suppress
+        from pathlib import Path
 
         from IPython.display import Image, display
 
@@ -352,7 +356,8 @@ def visualize_interview_graph(
         img_data = graph.get_graph().draw_mermaid_png()
 
         # Save to file
-        with output_path.open("wb") as f:
+        path = Path(output_path)
+        with path.open("wb") as f:
             f.write(img_data)
 
         logger.info(f"Graph visualization saved to {output_path}")

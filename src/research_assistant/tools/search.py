@@ -18,7 +18,7 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone  # noqa: UP017
 from functools import wraps
-from typing import Any
+from typing import Any, ParamSpec, TypeVar
 
 # Load environment variables from .env if available
 from dotenv import load_dotenv
@@ -33,6 +33,9 @@ from ..prompts.interview_prompts import get_search_instructions_as_system_messag
 logger = logging.getLogger(__name__)
 
 load_dotenv()
+
+P = ParamSpec("P")
+R = TypeVar("R")
 
 
 class SearchError(Exception):
@@ -178,8 +181,8 @@ def retry_with_backoff(
     max_retries: int = 3,
     initial_delay: float = 1.0,
     backoff_factor: float = 2.0,
-    exceptions: tuple = (Exception,),
-):
+    exceptions: tuple[type[BaseException], ...] = (Exception,),
+) -> Callable[[Callable[P, R]], Callable[P, R]]:
     """Decorator for retrying functions with exponential backoff.
 
     Args:
@@ -195,23 +198,20 @@ def retry_with_backoff(
         ...     pass
     """
 
-    def decorator(func: Callable) -> Callable:
+    def decorator(func: Callable[P, R]) -> Callable[P, R]:  # Parameterized Callable
         @wraps(func)
-        def wrapper(*args, **kwargs):
+        def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:  # Preserve args/kwargs, add return R
             delay = initial_delay
-            last_exception = None
 
             for attempt in range(max_retries + 1):
                 try:
-                    return func(*args, **kwargs)
-                except exceptions as e:
-                    last_exception = e
-
+                    return func(*args, **kwargs)  # Mypy infers R
+                except tuple(exceptions) as e:  # Use tuple() to match type
                     if attempt == max_retries:
                         logger.error(
                             f"{func.__name__} failed after {max_retries} retries: {str(e)}"
                         )
-                        raise
+                        raise  # Re-raises current e
 
                     logger.warning(
                         f"{func.__name__} failed (attempt {attempt + 1}/{max_retries}), "
@@ -220,7 +220,8 @@ def retry_with_backoff(
                     time.sleep(delay)
                     delay *= backoff_factor
 
-            raise last_exception
+            # Unreachable: Loop always returns or raises; mypy satisfied
+            raise AssertionError("Unexpected: retry loop exhausted without raise")
 
         return wrapper
 
@@ -254,8 +255,13 @@ class RateLimiter:
             if wait_time > 0:
                 logger.warning(f"Rate limit reached, waiting {wait_time:.1f}s")
                 time.sleep(wait_time)
-                # Re-check after waiting
+                # Re-check after waiting (recursion fine, but add safeguard if > max wait)
                 return self.check_and_wait()
+
+            # If wait_time <=0 but still full, force raise
+            raise RateLimitError(
+                f"Rate limit exceeded after wait: {len(self._requests)}/{self.max_requests}"
+            )
 
         # Record this request
         self._requests.append(now)

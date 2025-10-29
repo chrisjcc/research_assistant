@@ -107,8 +107,14 @@ def generate_question(
         logger.debug(f"Generated question length: {len(question.content)} chars")
 
         # Check if this is the concluding message
-        if is_interview_complete(question.content):
-            logger.info("Analyst has concluded the interview")
+        content = question.content
+        if isinstance(content, str):
+            if is_interview_complete(content):
+                logger.info("Analyst has concluded the interview")
+        else:
+            # Fallback for non-str (e.g., tool calls): skip or coerce
+            logger.debug("Non-string content; skipping completion check")
+            # Optional: if is_interview_complete(str(content)): ...  # If needed
 
         return {"messages": [question]}
 
@@ -294,7 +300,18 @@ def route_messages(
                 "goodbye",
                 "that's everything",
             ]
-            content_lower = last_message.content.lower()
+            content = last_message.content
+            if isinstance(content, str):
+                content_lower = content.lower()
+            else:
+                # Fallback: join list items if non-str (rare for HumanMessage)
+                content_str = (
+                    " ".join(str(item) for item in content)
+                    if isinstance(content, list)
+                    else str(content)
+                )
+                content_lower = content_str.lower()
+
             if any(phrase in content_lower for phrase in conclusion_phrases):
                 logger.info("Interview concluded by analyst")
                 return "save_interview"
@@ -398,7 +415,7 @@ def extract_citations_from_interview(interview_text: str) -> list[str]:
     matches = re.findall(pattern, interview_text)
 
     # Extract individual numbers
-    citations = set()
+    citations: set[str] = set()
     for match in matches:
         numbers = match.split(",")
         citations.update(n.strip() for n in numbers)

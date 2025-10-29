@@ -20,6 +20,8 @@ Example:
     Description: Focuses on alignment and safety concerns in LLMs
 """
 
+from typing import Any
+
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 
@@ -411,7 +413,7 @@ class SearchQuery(BaseModel):
         """
         return not self.search_query or not self.search_query.strip()
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary format for API calls.
 
         Returns:
@@ -462,7 +464,7 @@ def validate_analyst_diversity(analysts: list[Analyst]) -> bool:
     return unique_roles_ratio >= 0.7 and unique_affiliation_ratio >= 0.5
 
 
-def create_analyst_from_dict(data: dict) -> Analyst:
+def create_analyst_from_dict(data: dict[str, Any]) -> Analyst:
     """Factory function to create an Analyst from a dictionary.
 
     This function provides a convenient way to create Analyst instances

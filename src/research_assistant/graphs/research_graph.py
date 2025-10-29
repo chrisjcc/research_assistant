@@ -79,7 +79,14 @@ def initiate_all_interviews(state: ResearchGraphState) -> str | list[Send]:
             content=f"So you said you were writing an article on {topic}?"
         )
 
-        send_obj = Send("conduct_interview", {"analyst": analyst, "messages": [initial_message]})
+        send_obj = Send(
+            "conduct_interview",
+            {
+                "analyst": analyst,
+                "messages": [initial_message],
+                "max_num_turns": state.get("max_num_turns", 2),
+            },
+        )
         send_objects.append(send_obj)
 
         logger.debug(f"Created interview Send for analyst: {analyst.name}")
@@ -145,28 +152,22 @@ def build_research_graph(
             "human_analyst_feedback": state.get("human_analyst_feedback", ""),
             "analysts": state.get("analysts", []),
         }
-        result = create_analysts(analysts_state, llm=llm, detailed_prompts=detailed_prompts)
-        return cast(dict[str, Any], result)
+        return create_analysts(analysts_state, llm=llm, detailed_prompts=detailed_prompts)
 
     def human_feedback_node(state: ResearchGraphState) -> dict[str, Any]:
-        result = human_feedback(state)
-        return cast(dict[str, Any], result)
+        return human_feedback(state)
 
     def write_report_node(state: ResearchGraphState) -> dict[str, Any]:
-        result = write_report(state, llm=llm, detailed_prompts=detailed_prompts)
-        return cast(dict[str, Any], result)
+        return write_report(state, llm=llm, detailed_prompts=detailed_prompts)
 
     def write_introduction_node(state: ResearchGraphState) -> dict[str, Any]:
-        result = write_introduction(state, llm=llm, detailed_prompts=detailed_prompts)
-        return cast(dict[str, Any], result)
+        return write_introduction(state, llm=llm, detailed_prompts=detailed_prompts)
 
     def write_conclusion_node(state: ResearchGraphState) -> dict[str, Any]:
-        result = write_conclusion(state, llm=llm, detailed_prompts=detailed_prompts)
-        return cast(dict[str, Any], result)
+        return write_conclusion(state, llm=llm, detailed_prompts=detailed_prompts)
 
     def finalize_report_node(state: ResearchGraphState) -> dict[str, Any]:
-        result = finalize_report(state)
-        return cast(dict[str, Any], result)
+        return finalize_report(state)
 
     # Add nodes
     builder.add_node("create_analysts", create_analysts_node)
@@ -660,10 +661,9 @@ def create_research_system(
     )
 
     # Build main research graph
-    compiled_interview_graph = interview_graph.compile()
     research_graph = build_research_graph(
         llm=llm,
-        interview_graph=compiled_interview_graph,
+        interview_graph=interview_graph,
         enable_interrupts=enable_interrupts,
         detailed_prompts=detailed_prompts,
     )

@@ -12,9 +12,10 @@ Example:
 
 import logging
 import re
-from typing import Any
+from collections.abc import Sequence
+from typing import Any, cast
 
-from langchain_core.messages import HumanMessage, SystemMessage
+from langchain_core.messages import BaseMessage, HumanMessage, SystemMessage
 from langchain_openai import ChatOpenAI
 
 from ..core.state import InterviewState, ResearchGraphState
@@ -239,16 +240,20 @@ def write_introduction(
         llm = ChatOpenAI(model="gpt-4o", temperature=0)
 
     # Format instructions
+    sections_str = "\n\n".join(str(section) for section in sections)  # Coerce list to str
     instructions = format_introduction_instructions(
-        topic=topic, sections=sections, detailed=detailed_prompts
+        topic=topic, sections=sections_str, detailed=detailed_prompts
     )
 
     # Create messages
-    messages = [instructions, HumanMessage(content="Write the report introduction")]
+    messages: list[BaseMessage] = [
+        SystemMessage(content=instructions),
+        HumanMessage(content="Write the report introduction"),
+    ]
 
     try:
         logger.info("Invoking LLM for introduction writing")
-        intro = llm.invoke(messages)
+        intro = llm.invoke(cast(Sequence[BaseMessage], messages))  # Narrow to expected seq
 
         intro_content = intro.content if hasattr(intro, "content") else str(intro)
 
@@ -305,16 +310,20 @@ def write_conclusion(
         llm = ChatOpenAI(model="gpt-4o", temperature=0)
 
     # Format instructions
+    sections_str = "\n\n".join(str(section) for section in sections)  # Coerce list to str
     instructions = format_conclusion_instructions(
-        topic=topic, sections=sections, detailed=detailed_prompts
+        topic=topic, sections=sections_str, detailed=detailed_prompts
     )
 
     # Create messages
-    messages = [instructions, HumanMessage(content="Write the report conclusion")]
+    messages: list[BaseMessage] = [
+        SystemMessage(content=instructions),
+        HumanMessage(content="Write the report conclusion"),
+    ]
 
     try:
         logger.info("Invoking LLM for conclusion writing")
-        conclusion = llm.invoke(messages)
+        conclusion = llm.invoke(cast(Sequence[BaseMessage], messages))  # Narrow
 
         conclusion_content = (
             conclusion.content if hasattr(conclusion, "content") else str(conclusion)

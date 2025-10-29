@@ -24,7 +24,7 @@ Example:
 import operator
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Annotated, Any, TypedDict
+from typing import Annotated, Any, TypedDict, cast
 
 from langchain_core.messages import AIMessage, HumanMessage
 from langgraph.graph import MessagesState
@@ -108,10 +108,12 @@ class InterviewState(MessagesState, total=False):
     """
 
     max_num_turns: int
-    context: Annotated[list, operator.add]
+    context: Annotated[list[Any], operator.add]  # Any for docs/str; or list[str] if text-only
     analyst: Analyst
     interview: str
-    sections: list
+    sections: list[
+        dict[str, Any]
+    ]  # Assuming sections are dicts (e.g., {"title": str, "content": str})
 
 
 class ResearchGraphState(TypedDict, total=False):
@@ -150,11 +152,12 @@ class ResearchGraphState(TypedDict, total=False):
     max_analysts: int
     human_analyst_feedback: str
     analysts: list[Analyst]
-    sections: Annotated[list, operator.add]
+    sections: Annotated[list[dict[str, Any]], operator.add]  # Dict for structured sections
     introduction: str
     content: str
     conclusion: str
     final_report: str
+    max_interview_turns: int
 
 
 @dataclass
@@ -479,8 +482,8 @@ def get_total_context_length(state: InterviewState) -> int:
         >>> context_length = get_total_context_length(state)
         >>> print(f"Total context: {context_length} characters")
     """
-    context = state.get("context", [])
-    return sum(len(doc) for doc in context if isinstance(doc, str))
+    context: list[Any] = state.get("context", [])  # Explicit unpack to narrow
+    return sum(len(str(doc)) for doc in context)  # str() safe for Any; removes isinstance if
 
 
 def get_research_progress(state: ResearchGraphState) -> dict[str, Any]:
@@ -551,8 +554,9 @@ def serialize_state_for_checkpoint(state: ResearchGraphState) -> dict[str, Any]:
     serialized = dict(state)
 
     # Convert Analyst objects to dictionaries
-    if "analysts" in serialized:
-        serialized["analysts"] = [analyst.model_dump() for analyst in serialized["analysts"]]
+    if "analysts" in serialized and isinstance(serialized["analysts"], list):
+        analysts_list = serialized["analysts"]
+        serialized["analysts"] = [analyst.model_dump() for analyst in analysts_list]
 
     return serialized
 
@@ -574,13 +578,25 @@ def deserialize_state_from_checkpoint(data: dict[str, Any]) -> ResearchGraphStat
         >>> data = json.loads(checkpoint_json)
         >>> state = deserialize_state_from_checkpoint(data)
     """
-    state = ResearchGraphState(**data)
+    # Manual construction: TypedDict as dict
+    state = {
+        "topic": data.get("topic", ""),
+        "max_analysts": data.get("max_analysts", 3),
+        "human_analyst_feedback": data.get("human_analyst_feedback", ""),
+        "analysts": data.get("analysts", []),
+        "sections": data.get("sections", []),
+        "introduction": data.get("introduction", ""),
+        "content": data.get("content", ""),
+        "conclusion": data.get("conclusion", ""),
+        "final_report": data.get("final_report", ""),
+    }
 
-    # Convert analyst dictionaries back to Analyst objects
-    if "analysts" in state and state["analysts"] and isinstance(state["analysts"][0], dict):
-        state["analysts"] = [Analyst(**analyst_dict) for analyst_dict in state["analysts"]]
+    # Convert analyst dicts back to Analyst objects
+    analysts_data = state["analysts"]
+    if analysts_data and isinstance(analysts_data[0], dict):
+        state["analysts"] = [Analyst(**analyst_dict) for analyst_dict in analysts_data]
 
-    return state
+    return cast(ResearchGraphState, state)
 
 
 # Utility function for state updates

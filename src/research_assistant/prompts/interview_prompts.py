@@ -8,6 +8,8 @@ Example:
     >>> instructions = format_question_instructions(analyst_persona)
 """
 
+from typing import Any
+
 from langchain_core.messages import SystemMessage
 
 # Question generation instructions
@@ -285,7 +287,7 @@ def get_search_instructions_as_system_message(detailed: bool = False) -> SystemM
     return SystemMessage(content=content)
 
 
-def format_context_from_documents(documents: list[dict]) -> str:
+def format_context_from_documents(documents: list[dict[str, Any]]) -> str:
     """Format retrieved documents into context string for expert answers.
 
     Args:

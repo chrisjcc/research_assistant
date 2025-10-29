@@ -55,6 +55,7 @@ target-version = "py311"
 [tool.mypy]
 python_version = "3.11"
 strict = true
+namespace_packages = true  # Optional but helps with relatives
 
 [tool.coverage.run]
 relative_files = true
