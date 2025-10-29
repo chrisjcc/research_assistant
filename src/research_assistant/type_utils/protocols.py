@@ -37,7 +37,7 @@ class LLMProvider(Protocol):
         Returns:
             LLM response.
         """
-        ...
+        pass
 
     def with_structured_output(self, schema: type) -> LLMProvider:
         """Configure LLM for structured output.
@@ -48,7 +48,7 @@ class LLMProvider(Protocol):
         Returns:
             Configured LLM instance.
         """
-        ...
+        pass
 
 
 @runtime_checkable
@@ -64,7 +64,7 @@ class SearchProvider(Protocol):
         Returns:
             List of search results.
         """
-        ...
+        pass
 
     def format_results(self, results: list[dict[str, Any]]) -> str:
         """Format search results for LLM context.
@@ -75,7 +75,7 @@ class SearchProvider(Protocol):
         Returns:
             Formatted string.
         """
-        ...
+        pass
 
 
 @runtime_checkable
@@ -91,7 +91,7 @@ class CacheProvider(Protocol):
         Returns:
             Cached value or None.
         """
-        ...
+        pass
 
     def set(self, key: str, value: Any, ttl: int | None = None) -> None:
         """Set value in cache.
@@ -101,7 +101,7 @@ class CacheProvider(Protocol):
             value: Value to cache.
             ttl: Time-to-live in seconds.
         """
-        ...
+        pass
 
     def delete(self, key: str) -> None:
         """Delete value from cache.
@@ -109,11 +109,11 @@ class CacheProvider(Protocol):
         Args:
             key: Cache key.
         """
-        ...
+        pass
 
     def clear(self) -> None:
         """Clear all cached values."""
-        ...
+        pass
 
 
 @runtime_checkable
@@ -129,7 +129,7 @@ class StateValidator(Protocol):
         Returns:
             True if valid, False otherwise.
         """
-        ...
+        pass
 
     def get_errors(self) -> list[str]:
         """Get validation errors from last validation.
@@ -137,7 +137,7 @@ class StateValidator(Protocol):
         Returns:
             List of error messages.
         """
-        ...
+        pass
 
 
 @runtime_checkable
@@ -153,7 +153,7 @@ class NodeExecutor(Protocol):
         Returns:
             State updates.
         """
-        ...
+        pass
 
 
 @runtime_checkable
@@ -169,7 +169,7 @@ class PromptFormatter(Protocol):
         Returns:
             Formatted prompt string.
         """
-        ...
+        pass
 
 
 @runtime_checkable
