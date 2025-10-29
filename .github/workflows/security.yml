@@ -18,7 +18,7 @@ jobs:
   dependency-scan:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     
     - name: Set up Python
       uses: actions/setup-python@v5
@@ -55,7 +55,7 @@ jobs:
   secret-scan:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
       with:
         fetch-depth: 0  # Full history for secret scanning
     
@@ -70,7 +70,7 @@ jobs:
   code-scan:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     
     - name: Set up Python
       uses: actions/setup-python@v5
@@ -116,7 +116,7 @@ jobs:
     
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
     
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v3
@@ -135,7 +135,7 @@ jobs:
   license-scan:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     
     - name: Set up Python
       uses: actions/setup-python@v5
@@ -172,7 +172,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'push' || github.event_name == 'schedule'
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     
     - name: Build Docker image
       run: |
