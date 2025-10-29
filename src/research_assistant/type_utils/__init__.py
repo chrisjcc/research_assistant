@@ -52,6 +52,7 @@ from .validation import (
     validate_pydantic_model,
     validate_range,
     validate_type,
+    ValidationResult,
 )
 
 __all__ = [
