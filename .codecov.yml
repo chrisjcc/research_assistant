@@ -1,0 +1,21 @@
+coverage:
+  status:
+    project:
+      default:
+        target: 75%
+        threshold: 1%
+
+      research_assistant/graphs/:
+        target: 75%
+      research_assistant/nodes/:
+        target: 85%
+      research_assistant/tools/search.py:
+        target: 80%
+      research_assistant/type_utils/:
+        target: 85%
+      research_assistant/utils/:
+        target: 85%
+
+    patch:
+      default:
+        target: 45%  # for new or modified lines in PRs

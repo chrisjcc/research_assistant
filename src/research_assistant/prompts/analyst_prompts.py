@@ -13,30 +13,33 @@ Example:
     ... )
 """
 
-from typing import Optional
-
-
 # Main analyst creation instruction template
-ANALYST_CREATION_INSTRUCTIONS = """You are tasked with creating a set of AI analyst personas. Follow these instructions carefully:
+ANALYST_CREATION_INSTRUCTIONS = """
+You are tasked with creating a set of AI analyst personas.
+Follow these instructions carefully:
 
 1. First, review the research topic:
 {topic}
-        
-2. Examine any editorial feedback that has been optionally provided to guide creation of the analysts: 
-        
+
+2. Examine any editorial feedback that has been optionally provided
+   to guide creation of the analysts:
+
 {human_analyst_feedback}
-    
-3. Determine the most interesting themes based upon documents and / or feedback above.
-                    
+
+3. Determine the most interesting themes based upon documents
+   and / or feedback above.
+
 4. Pick the top {max_analysts} themes.
 
 5. Assign one analyst to each theme."""
 
 
 # Alternative instruction template with more detailed guidance
-ANALYST_CREATION_DETAILED_INSTRUCTIONS = """You are an expert at creating diverse analyst personas for comprehensive research coverage.
+ANALYST_CREATION_DETAILED_INSTRUCTIONS = """
+You are an expert at creating diverse analyst personas for comprehensive research coverage.
 
-Your task is to create {max_analysts} AI analyst personas who will investigate different aspects of this research topic:
+Your task is to create {max_analysts} AI analyst personas who will investigate different
+aspects of this research topic:
 
 TOPIC: {topic}
 
@@ -73,17 +76,22 @@ INSTRUCTIONS:
    - Consider geographic and institutional diversity
    - Balance theoretical and practical perspectives
 
-Remember: These analysts will conduct interviews to gather information. They should be curious, knowledgeable, and focused on uncovering insights that might not be obvious to a general audience."""
+Remember: These analysts will conduct interviews to gather information.
+They should be curious,knowledgeable, and focused on uncovering insights
+that might not be obvious to a general audience."""
 
 
 # System message for analyst regeneration
-ANALYST_REGENERATION_INSTRUCTIONS = """The analysts you previously created have received feedback. Please revise them according to this guidance:
+ANALYST_REGENERATION_INSTRUCTIONS = """
+The analysts you previously created have received feedback.
+Please revise them according to this guidance:
 
 ORIGINAL TOPIC: {topic}
 
 FEEDBACK: {human_analyst_feedback}
 
-Please create a new set of {max_analysts} analysts that addresses the feedback while maintaining diversity and comprehensive coverage of the topic.
+Please create a new set of {max_analysts} analysts that addressesthe feedback
+while maintaining diversity and comprehensive coverage of the topic.
 
 Focus on:
 1. Addressing the specific concerns raised in the feedback
@@ -92,7 +100,9 @@ Focus on:
 
 
 # Instruction for when no feedback is provided
-ANALYST_CREATION_NO_FEEDBACK = """You are tasked with creating a set of AI analyst personas. Follow these instructions carefully:
+ANALYST_CREATION_NO_FEEDBACK = """
+You are tasked with creating a set of AI analyst personas.
+Follow these instructions carefully:
 
 1. First, review the research topic:
 {topic}
@@ -105,27 +115,25 @@ ANALYST_CREATION_NO_FEEDBACK = """You are tasked with creating a set of AI analy
    - A credible affiliation
    - A detailed description of their expertise and focus
 
-4. Ensure the analysts provide diverse, complementary perspectives that will result in comprehensive research coverage."""
+4. Ensure the analysts provide diverse, complementary perspectives
+   that will result in comprehensive research coverage."""
 
 
 def format_analyst_instructions(
-    topic: str,
-    max_analysts: int,
-    human_feedback: Optional[str] = None,
-    detailed: bool = False
+    topic: str, max_analysts: int, human_feedback: str | None = None, detailed: bool = False
 ) -> str:
     """Format analyst creation instructions with provided parameters.
-    
+
     Args:
         topic: The research topic for analyst creation.
         max_analysts: Maximum number of analysts to create.
         human_feedback: Optional human feedback for analyst refinement.
             If None or empty, indicates initial creation without feedback.
         detailed: If True, use more detailed instructions. Defaults to False.
-        
+
     Returns:
         Formatted instruction string ready for LLM consumption.
-        
+
     Example:
         >>> instructions = format_analyst_instructions(
         ...     topic="Quantum Computing",
@@ -136,43 +144,33 @@ def format_analyst_instructions(
     # Clean and prepare feedback
     feedback = human_feedback if human_feedback else ""
     feedback = feedback.strip()
-    
+
     # If no feedback provided, use simplified template
     if not feedback:
-        feedback = "No specific feedback provided. Use your best judgment to create diverse, high-quality analyst personas."
-    
+        feedback = """No specific feedback provided.
+        Use your best judgment to create diverse, high-quality analyst personas."""
+
     # Choose template based on detailed flag
-    if detailed:
-        template = ANALYST_CREATION_DETAILED_INSTRUCTIONS
-    else:
-        template = ANALYST_CREATION_INSTRUCTIONS
-    
+    template = ANALYST_CREATION_DETAILED_INSTRUCTIONS if detailed else ANALYST_CREATION_INSTRUCTIONS
+
     # Format and return
-    return template.format(
-        topic=topic,
-        max_analysts=max_analysts,
-        human_analyst_feedback=feedback
-    )
+    return template.format(topic=topic, max_analysts=max_analysts, human_analyst_feedback=feedback)
 
 
-def format_regeneration_instructions(
-    topic: str,
-    max_analysts: int,
-    human_feedback: str
-) -> str:
+def format_regeneration_instructions(topic: str, max_analysts: int, human_feedback: str) -> str:
     """Format instructions for regenerating analysts based on feedback.
-    
+
     This is used when human reviewers provide feedback on initially generated
     analysts and request modifications.
-    
+
     Args:
         topic: The research topic.
         max_analysts: Maximum number of analysts to create.
         human_feedback: Human feedback explaining desired changes.
-        
+
     Returns:
         Formatted regeneration instruction string.
-        
+
     Example:
         >>> instructions = format_regeneration_instructions(
         ...     topic="AI Ethics",
@@ -181,21 +179,19 @@ def format_regeneration_instructions(
         ... )
     """
     return ANALYST_REGENERATION_INSTRUCTIONS.format(
-        topic=topic,
-        max_analysts=max_analysts,
-        human_analyst_feedback=human_feedback
+        topic=topic, max_analysts=max_analysts, human_analyst_feedback=human_feedback
     )
 
 
 def get_analyst_quality_criteria() -> str:
     """Get the quality criteria for analyst creation.
-    
+
     Returns a description of what makes a good analyst persona. This can be
     used for evaluation or as additional context in prompts.
-    
+
     Returns:
         String describing quality criteria.
-        
+
     Example:
         >>> criteria = get_analyst_quality_criteria()
         >>> print(criteria)
@@ -231,13 +227,13 @@ def get_analyst_quality_criteria() -> str:
 
 def get_example_analysts() -> str:
     """Get example analyst personas for reference.
-    
+
     Provides concrete examples of well-crafted analyst personas that can serve
     as templates or reference points.
-    
+
     Returns:
         String containing example analyst definitions.
-        
+
     Example:
         >>> examples = get_example_analysts()
         >>> # Use in few-shot prompting
@@ -248,35 +244,36 @@ Example 1 - Technology Topic:
 Name: Dr. Sarah Chen
 Role: Machine Learning Research Scientist
 Affiliation: Google DeepMind
-Description: Specializes in transformer architectures and efficient training methods. 
-Particularly interested in how scaling laws apply to different model architectures and 
-training regimes. Wants to understand the practical engineering challenges and 
-trade-offs in training large language models, including computational costs, 
+Description: Specializes in transformer architectures and efficient training methods.
+Particularly interested in how scaling laws apply to different model architectures and
+training regimes. Wants to understand the practical engineering challenges and
+trade-offs in training large language models, including computational costs,
 memory requirements, and optimization strategies.
 
 Example 2 - Policy Topic:
 Name: Ambassador James Mitchell
 Role: Senior Fellow, International Security Program
 Affiliation: Council on Foreign Relations
-Description: Former diplomat with 25 years of experience in arms control negotiations. 
-Focuses on the intersection of emerging technologies and international security frameworks. 
-Concerned with how AI capabilities might affect strategic stability, the applicability of 
-existing international law, and the prospects for meaningful governance mechanisms. 
+Description: Former diplomat with 25 years of experience in arms control negotiations.
+Focuses on the intersection of emerging technologies and international security frameworks.
+Concerned with how AI capabilities might affect strategic stability, the applicability of
+existing international law, and the prospects for meaningful governance mechanisms.
 Seeks to understand technical capabilities well enough to inform policy recommendations.
 
 Example 3 - Social Sciences Topic:
 Name: Prof. Maria Rodriguez
 Role: Associate Professor of Science & Technology Studies
 Affiliation: MIT
-Description: Uses ethnographic methods to study how technologies are developed and 
-deployed in organizational contexts. Interested in the social dynamics of AI research labs, 
-how different communities understand and frame AI risks, and whose voices are included or 
-excluded in AI governance discussions. Particularly attuned to power dynamics and 
+Description: Uses ethnographic methods to study how technologies are developed and
+deployed in organizational contexts. Interested in the social dynamics of AI research labs,
+how different communities understand and frame AI risks, and whose voices are included or
+excluded in AI governance discussions. Particularly attuned to power dynamics and
 structural inequalities."""
 
 
 # Prompt for validating generated analysts
-ANALYST_VALIDATION_PROMPT = """Review the following analyst personas and assess their quality:
+ANALYST_VALIDATION_PROMPT = """
+Review the following analyst personas and assess their quality:
 
 {analysts}
 
@@ -296,21 +293,18 @@ Provide:
 
 def format_analyst_validation_prompt(analysts_text: str, topic: str) -> str:
     """Format a prompt for validating generated analysts.
-    
+
     Args:
         analysts_text: Text description of generated analysts.
         topic: The research topic.
-        
+
     Returns:
         Formatted validation prompt.
-        
+
     Example:
         >>> validation = format_analyst_validation_prompt(
         ...     analysts_text=analyst_descriptions,
         ...     topic="Climate Change"
         ... )
     """
-    return ANALYST_VALIDATION_PROMPT.format(
-        analysts=analysts_text,
-        topic=topic
-    )
+    return ANALYST_VALIDATION_PROMPT.format(analysts=analysts_text, topic=topic)

@@ -13,18 +13,22 @@ permissions:
 jobs:
   pr-validation:
     runs-on: ubuntu-latest
+    env:
+      TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
     if: github.event.pull_request.draft == false
     steps:
     - uses: actions/checkout@v4
       with:
         fetch-depth: 0
-    
-    - name: Check PR title
+
+    - name: Check PR title format
       run: |
         PR_TITLE="${{ github.event.pull_request.title }}"
-        
+
+        PATTERN="^(feat|fix|docs|style|refactor|perf|test|chore|ci|build|revert)(\\([^)]+\\))?: .+"
+
         # Check for conventional commit format
-        if [[ ! "$PR_TITLE" =~ ^(feat|fix|docs|style|refactor|perf|test|chore|ci|build|revert)(\(.+\))?: .+ ]]; then
+        if [[ ! "$PR_TITLE" =~ $PATTERN ]]; then
           echo "❌ PR title doesn't follow conventional commits format"
           echo "Expected: type(scope): description"
           echo "Examples:"
@@ -33,9 +37,9 @@ jobs:
           echo "  - docs: update README"
           exit 1
         fi
-        
+
         echo "✅ PR title follows conventional commits format"
-    
+
     - name: Check PR size
       id: pr_size
       run: |
@@ -44,10 +48,10 @@ jobs:
         ADDITIONS=$(gh pr view ${{ github.event.pull_request.number }} --json additions --jq '.additions')
         DELETIONS=$(gh pr view ${{ github.event.pull_request.number }} --json deletions --jq '.deletions')
         TOTAL_CHANGES=$((ADDITIONS + DELETIONS))
-        
+
         echo "files=$CHANGED_FILES" >> $GITHUB_OUTPUT
         echo "changes=$TOTAL_CHANGES" >> $GITHUB_OUTPUT
-        
+
         # Determine size label
         if [ $TOTAL_CHANGES -lt 100 ]; then
           SIZE="XS"
@@ -60,9 +64,9 @@ jobs:
         else
           SIZE="XL"
         fi
-        
+
         echo "size=$SIZE" >> $GITHUB_OUTPUT
-        
+
         # Warning for large PRs
         if [ $TOTAL_CHANGES -gt 1000 ]; then
           echo "⚠️ This PR is quite large ($TOTAL_CHANGES lines changed)"
@@ -70,21 +74,21 @@ jobs:
         fi
       env:
         GH_TOKEN: ${{ github.token }}
-    
+
     - name: Add size label
       uses: actions/github-script@v7
       with:
         script: |
           const size = '${{ steps.pr_size.outputs.size }}';
           const labels = ['size/XS', 'size/S', 'size/M', 'size/L', 'size/XL'];
-          
+
           // Remove existing size labels
           const currentLabels = await github.rest.issues.listLabelsOnIssue({
             owner: context.repo.owner,
             repo: context.repo.repo,
             issue_number: context.issue.number
           });
-          
+
           for (const label of currentLabels.data) {
             if (labels.includes(label.name)) {
               await github.rest.issues.removeLabel({
@@ -95,7 +99,7 @@ jobs:
               });
             }
           }
-          
+
           // Add new size label
           await github.rest.issues.addLabels({
             owner: context.repo.owner,
@@ -109,7 +113,7 @@ jobs:
     if: github.event.pull_request.draft == false
     steps:
     - uses: actions/checkout@v4
-    
+
     - name: Dependency Review
       uses: actions/dependency-review-action@v4
       with:
@@ -118,27 +122,31 @@ jobs:
 
   code-coverage:
     runs-on: ubuntu-latest
+    env:
+      TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
     if: github.event.pull_request.draft == false
     steps:
     - uses: actions/checkout@v4
       with:
         fetch-depth: 0
-    
+
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
         python-version: '3.11'
-    
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -r requirements.txt
-        pip install pytest pytest-cov
-    
+        pip install -e ".[dev]"
+
     - name: Run tests with coverage
+      env:
+        TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
       run: |
+        echo "Using TAVILY_API_KEY length: ${#TAVILY_API_KEY}"
         pytest tests/ -v --cov=src --cov-report=xml --cov-report=term
-    
+
     - name: Coverage Comment
       uses: py-cov-action/python-coverage-comment-action@v3
       with:
@@ -156,7 +164,7 @@ jobs:
       with:
         script: |
           const body = `## 🤖 Automated PR Review
-          
+
           ### Status Summary
           - ✅ PR Validation: ${{ needs.pr-validation.result }}
           - 📊 Code Coverage: ${{ needs.code-coverage.result }}
@@ -165,7 +173,7 @@ jobs:
           1. Ensure all checks pass
           2. Request review from team members
           3. Address any review comments
-          
+
           ---
           *Automated by GitHub Actions*`;
           
@@ -183,7 +191,7 @@ jobs:
     - uses: actions/checkout@v4
       with:
         fetch-depth: 0
-    
+
     - name: Auto-label based on files changed
       uses: actions/github-script@v7
       with:
@@ -193,9 +201,9 @@ jobs:
             repo: context.repo.repo,
             pull_number: context.issue.number
           });
-          
+
           const labels = new Set();
-          
+
           for (const file of files) {
             if (file.filename.startsWith('src/')) {
               labels.add('code');
@@ -209,11 +217,11 @@ jobs:
             if (file.filename.startsWith('.github/workflows/')) {
               labels.add('ci/cd');
             }
-            if (file.filename === 'requirements.txt' || file.filename === 'pyproject.toml') {
+            if (file.filename === 'pyproject.toml') {
               labels.add('dependencies');
             }
           }
-          
+
           if (labels.size > 0) {
             await github.rest.issues.addLabels({
               owner: context.repo.owner,

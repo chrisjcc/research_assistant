@@ -7,7 +7,7 @@ This package provides:
 - Pydantic model validation helpers
 
 Example:
-    >>> from research_assistant.types import (
+    >>> from research_assistant.type_utils import (
     ...     LLMProvider,
     ...     validate_type,
     ...     validate_function_args
@@ -15,52 +15,43 @@ Example:
 """
 
 # Protocols
-from .protocols import (
-    LLMProvider,
-    SearchProvider,
+from .protocols import (  # Type aliases
+    AnalystList,
     CacheProvider,
-    StateValidator,
-    NodeExecutor,
-    PromptFormatter,
-    MetricsCollector,
     Checkpointer,
-    OutputFormatter,
-    ErrorHandler,
-    ConfigProvider,
-    Serializable,
-    Validatable,
     Comparable,
-    implements_protocol,
-    ensure_protocol,
-    # Type aliases
+    ConfigDict,
+    ConfigProvider,
+    ErrorHandler,
+    LLMProvider,
+    MessageList,
+    MetricsCollector,
+    MetricsDict,
+    NodeExecutor,
+    OutputFormatter,
+    PromptFormatter,
+    SearchProvider,
+    SearchResults,
+    Serializable,
     StateDict,
     StateUpdate,
-    MessageList,
-    SearchResults,
-    AnalystList,
-    ConfigDict,
-    MetricsDict,
+    StateValidator,
+    Validatable,
+    ensure_protocol,
+    implements_protocol,
 )
 
 # Validation
 from .validation import (
-    validate_type,
-    validate_function_args,
     TypeValidator,
+    validate_dict_keys,
+    validate_function_args,
+    validate_list_length,
     validate_non_empty_string,
     validate_positive_number,
-    validate_range,
-    validate_list_length,
-    validate_dict_keys,
     validate_pydantic_model,
-    validate_model_list,
-    validate_input_model,
-    validate_output_model,
-    StringValidator,
-    NumberValidator,
-    ListValidator,
-    ValidationResult,
-    create_validator,
+    validate_range,
+    validate_type,
 )
 
 __all__ = [
@@ -81,7 +72,6 @@ __all__ = [
     "Comparable",
     "implements_protocol",
     "ensure_protocol",
-    
     # Type aliases
     "StateDict",
     "StateUpdate",
@@ -90,7 +80,6 @@ __all__ = [
     "AnalystList",
     "ConfigDict",
     "MetricsDict",
-    
     # Validation
     "validate_type",
     "validate_function_args",

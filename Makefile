@@ -33,10 +33,10 @@ test-cov: ## Generate detailed coverage report (HTML + terminal) and enforce thr
 	@python scripts/check_coverage.py
 
 test-unit: ## Run only unit tests (fast subset)
-	pytest tests/unit -v
+	pytest tests/unit -v --cov=src/research_assistant --cov-config=coverage.toml
 
 test-integration: ## Run only integration tests
-	pytest tests/integration -v
+	pytest tests/integration -v --cov=src/research_assistant --cov-config=coverage.toml
 
 test-all: ## Run all tests including slow or long-running ones (used for CI)
 	pytest tests -v -m "not skip"

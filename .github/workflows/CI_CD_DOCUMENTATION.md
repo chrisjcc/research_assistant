@@ -525,7 +525,7 @@ load_dotenv()
 - uses: actions/cache@v4
   with:
     path: ~/.cache/pip
-    key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+    key: ${{ runner.os }}-pip-lint-${{ hashFiles('pyproject.toml', 'pdm.lock', 'poetry.lock', 'poetry.toml', 'setup.cfg') }}
 ```
 
 **Run tests in parallel**:

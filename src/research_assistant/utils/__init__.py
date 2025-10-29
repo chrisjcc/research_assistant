@@ -9,133 +9,109 @@ Example:
     >>> logger = get_logger(__name__)
 """
 
-from .logging import (
-    setup_logging,
-    setup_structlog,
-    get_logger,
-    log_execution,
-    log_operation,
-    log_function_call,
-    log_performance,
-    get_metrics,
-    reset_metrics,
-    log_metrics_summary,
-    configure_from_config,
-    ExecutionMetrics,
-)
-
-from .formatting import (
-    format_timestamp,
-    format_duration,
-    format_number,
-    format_report_metadata,
-    format_analyst_summary,
-    format_metrics_report,
-    save_report,
-    export_to_json,
-    export_to_html,
-    create_filename,
-    format_progress_bar,
-    format_table,
-    format_list,
-    truncate_text,
-    format_citation_list,
-    colorize_text,
-    format_key_value_pairs,
-    format_error_report,
-    sanitize_for_filename,
-    format_file_size,
-)
-
+# Base exceptions; Configuration; Analyst; Interview; Search; Report;
+# LLM; State; Graph; Data; File; Utilities
 from .exceptions import (
-    # Base exceptions
-    ResearchAssistantError,
-    
-    # Configuration
-    ConfigurationError,
-    MissingAPIKeyError,
-    
-    # Analyst
-    AnalystError,
     AnalystCreationError,
+    AnalystError,
     AnalystValidationError,
-    InsufficientAnalystsError,
-    
-    # Interview
-    InterviewError,
-    QuestionGenerationError,
     AnswerGenerationError,
-    InterviewTimeoutError,
-    
-    # Search
-    SearchError,
-    WebSearchError,
-    WikipediaSearchError,
-    SearchTimeoutError,
-    RateLimitError,
-    NoSearchResultsError,
-    
-    # Report
-    ReportError,
-    SectionGenerationError,
-    ReportSynthesisError,
-    MissingSectionsError,
-    InvalidReportFormatError,
-    
-    # LLM
-    LLMError,
-    LLMAPIError,
-    LLMTimeoutError,
-    LLMResponseError,
-    TokenLimitError,
-    
-    # State
-    StateError,
-    InvalidStateError,
-    MissingStateFieldError,
-    StateValidationError,
-    
-    # Graph
-    GraphError,
-    GraphExecutionError,
-    NodeExecutionError,
-    GraphInterruptError,
-    
-    # Data
+    ConfigurationError,
     DataError,
-    DataValidationError,
     DataTransformationError,
-    
-    # File
+    DataValidationError,
     FileError,
     FileReadError,
     FileWriteError,
+    GraphError,
+    GraphExecutionError,
+    GraphInterruptError,
+    InsufficientAnalystsError,
+    InterviewError,
+    InterviewTimeoutError,
     InvalidFileFormatError,
-    
-    # Utilities
-    is_recoverable_error,
-    get_error_context,
+    InvalidReportFormatError,
+    InvalidStateError,
+    LLMAPIError,
+    LLMError,
+    LLMResponseError,
+    LLMTimeoutError,
+    MissingAPIKeyError,
+    MissingSectionsError,
+    MissingStateFieldError,
+    NodeExecutionError,
+    NoSearchResultsError,
+    QuestionGenerationError,
+    RateLimitError,
+    ReportError,
+    ReportSynthesisError,
+    ResearchAssistantError,
+    SearchError,
+    SearchTimeoutError,
+    SectionGenerationError,
+    StateError,
+    StateValidationError,
+    TokenLimitError,
+    WebSearchError,
+    WikipediaSearchError,
     format_error_for_logging,
+    get_error_context,
+    is_recoverable_error,
 )
-
+from .formatting import (
+    colorize_text,
+    create_filename,
+    export_to_html,
+    export_to_json,
+    format_analyst_summary,
+    format_citation_list,
+    format_duration,
+    format_error_report,
+    format_file_size,
+    format_key_value_pairs,
+    format_list,
+    format_metrics_report,
+    format_number,
+    format_progress_bar,
+    format_report_metadata,
+    format_table,
+    format_timestamp,
+    sanitize_for_filename,
+    save_report,
+    truncate_text,
+)
+from .logging import (
+    ExecutionMetrics,
+    configure_from_config,
+    get_logger,
+    get_metrics,
+    log_execution,
+    log_function_call,
+    log_metrics_summary,
+    log_operation,
+    log_performance,
+    reset_metrics,
+    setup_logging,
+    setup_structlog,
+)
 from .retry import (
-    RetryConfig,
     CircuitBreakerConfig,
     CircuitState,
-    get_circuit_breaker,
-    retry_with_backoff,
-    retry_on_rate_limit,
-    with_circuit_breaker,
-    with_timeout,
-    retry_llm_call,
-    retry_search_call,
     FallbackHandler,
-    with_fallback,
-    safe_execute,
-    should_retry,
+    RetryConfig,
+    get_circuit_breaker,
+    get_circuit_breaker_status,
     get_retry_delay,
     reset_circuit_breaker,
-    get_circuit_breaker_status,
+    retry_llm_call,
+    retry_on_rate_limit,
+    retry_search_call,
+    retry_with_backoff,
+    safe_execute,
+    should_retry,
+    with_circuit_breaker,
+    with_fallback,
+    with_timeout,
 )
 
 __all__ = [
@@ -152,7 +128,6 @@ __all__ = [
     "log_metrics_summary",
     "configure_from_config",
     "ExecutionMetrics",
-    
     # Formatting
     "format_timestamp",
     "format_duration",
@@ -174,7 +149,6 @@ __all__ = [
     "format_error_report",
     "sanitize_for_filename",
     "format_file_size",
-    
     # Exceptions
     "ResearchAssistantError",
     "ConfigurationError",
@@ -221,7 +195,6 @@ __all__ = [
     "is_recoverable_error",
     "get_error_context",
     "format_error_for_logging",
-    
     # Retry & Circuit Breaker
     "RetryConfig",
     "CircuitBreakerConfig",

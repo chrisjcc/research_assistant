@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [ main, develop ]
 
+env:
+  TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
+
 jobs:
   lint:
     runs-on: ubuntu-latest
@@ -53,7 +56,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.10', '3.11', '3.12']
+        python-version: ['3.11']
     
     steps:
     - uses: actions/checkout@v4
@@ -87,7 +90,9 @@ jobs:
         pytest tests/integration/ -v --cov=src --cov-append --cov-report=xml --cov-report=term --timeout=600
       env:
         PYTHONPATH: ${{ github.workspace }}
-    
+
+    # Upload test coverage visualizes results to Codecov for analysis and PR reporting.
+    # Requires CODECOV_TOKEN (set as a GitHub Actions secret) for authentication.
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v4
       with:
