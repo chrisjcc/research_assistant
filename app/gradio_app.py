@@ -152,6 +152,9 @@ def start_research(
                 "Invalid analyst count"
             )
         
+        # Sanitize user input before logging
+        sanitized_topic = topic.replace('\r\n', '').replace('\n', '').replace('\r', '')
+        
         # Update progress
         progress(0.1, desc="Initializing research...")
         
@@ -176,7 +179,7 @@ def start_research(
         config = {"configurable": {"thread_id": thread_id}}
         
         # Start execution (will pause at human_feedback)
-        logger.info(f"Starting research on: {topic}")
+        logger.info(f"Starting research on: {sanitized_topic}")
         
         try:
             graph.invoke(initial_state, config)
