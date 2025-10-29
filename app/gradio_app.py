@@ -256,7 +256,8 @@ def approve_analysts(
         # Update state with feedback
         feedback_text = feedback.strip() if feedback else "approve"
         
-        logger.info(f"Processing feedback: {feedback_text[:50]}")
+        sanitized_feedback = feedback_text.replace('\r','').replace('\n','')
+        logger.info(f"Processing feedback: {sanitized_feedback[:50]}")
         
         if feedback_text.lower() != "approve":
             # Regenerate analysts with feedback
