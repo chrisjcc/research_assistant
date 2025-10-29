@@ -43,7 +43,7 @@ jobs:
         pip-audit || true
     
     - name: Upload Security Reports
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       if: always()
       with:
         name: security-reports-dependencies
@@ -92,7 +92,7 @@ jobs:
         semgrep --config=auto src scripts
     
     - name: Upload Code Scan Reports
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       if: always()
       with:
         name: security-reports-code
@@ -160,7 +160,7 @@ jobs:
         pip-licenses | grep -i "gpl\|agpl\|lgpl" && exit 1 || echo "No problematic licenses found"
     
     - name: Upload License Report
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: license-report
         path: |
