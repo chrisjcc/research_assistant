@@ -13,7 +13,7 @@ import logging
 import os
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 from hydra import compose, initialize_config_dir
 from hydra.core.global_hydra import GlobalHydra
@@ -70,7 +70,7 @@ class ConfigPaths:
 
 def load_config(
     config_name: str = "default",
-    overrides: list | None = None,
+    overrides: list[str] | None = None,
     config_path: str | None = None,
 ) -> DictConfig:
     """Load configuration using Hydra.
@@ -136,7 +136,8 @@ def load_config_from_file(file_path: str) -> DictConfig:
     try:
         cfg = OmegaConf.load(file_path)
         logger.info("Configuration loaded from file successfully")
-        return cfg
+        # OmegaConf.load can return DictConfig or ListConfig, we expect DictConfig
+        return cast(DictConfig, cfg)
     except Exception as e:
         logger.error(f"Failed to load config from file: {str(e)}")
         raise
@@ -177,7 +178,8 @@ def merge_configs(base_cfg: DictConfig, override_cfg: DictConfig) -> DictConfig:
         >>> merged = merge_configs(default_cfg, custom_cfg)
     """
     logger.debug("Merging configurations")
-    return OmegaConf.merge(base_cfg, override_cfg)
+    # OmegaConf.merge can return DictConfig or ListConfig, we expect DictConfig
+    return cast(DictConfig, OmegaConf.merge(base_cfg, override_cfg))
 
 
 # Configuration accessors for specific components
@@ -196,14 +198,17 @@ def get_llm_config(cfg: DictConfig) -> dict[str, Any]:
         >>> llm_cfg = get_llm_config(cfg)
         >>> logger.info(llm_cfg['model'])
     """
-    llm_cfg = OmegaConf.to_container(cfg.llm, resolve=True)
+    # OmegaConf.to_container returns a union type; cast to dict for type safety
+    llm_cfg = cast(dict[str, Any], OmegaConf.to_container(cfg.llm, resolve=True))
 
     # Load API key from environment
     if "openai" in llm_cfg:
-        api_key_env = llm_cfg["openai"].get("api_key_env", "OPENAI_API_KEY")
+        openai_cfg = cast(dict[str, Any], llm_cfg["openai"])
+        api_key_env = openai_cfg.get("api_key_env", "OPENAI_API_KEY")
         llm_cfg["api_key"] = os.getenv(api_key_env)
     elif "anthropic" in llm_cfg:
-        api_key_env = llm_cfg["anthropic"].get("api_key_env", "ANTHROPIC_API_KEY")
+        anthropic_cfg = cast(dict[str, Any], llm_cfg["anthropic"])
+        api_key_env = anthropic_cfg.get("api_key_env", "ANTHROPIC_API_KEY")
         llm_cfg["api_key"] = os.getenv(api_key_env)
 
     return llm_cfg
@@ -222,12 +227,15 @@ def get_search_config(cfg: DictConfig) -> dict[str, Any]:
         >>> search_cfg = get_search_config(cfg)
         >>> logger.info(search_cfg['web']['max_results'])
     """
-    search_cfg = OmegaConf.to_container(cfg.search, resolve=True)
+    # OmegaConf.to_container returns a union type; cast to dict for type safety
+    search_cfg = cast(dict[str, Any], OmegaConf.to_container(cfg.search, resolve=True))
 
     # Load API keys from environment
     if "web" in search_cfg and "tavily" in search_cfg["web"]:
-        api_key_env = search_cfg["web"]["tavily"].get("api_key_env", "TAVILY_API_KEY")
-        search_cfg["web"]["api_key"] = os.getenv(api_key_env)
+        web_cfg = cast(dict[str, Any], search_cfg["web"])
+        tavily_cfg = cast(dict[str, Any], web_cfg["tavily"])
+        api_key_env = tavily_cfg.get("api_key_env", "TAVILY_API_KEY")
+        web_cfg["api_key"] = os.getenv(api_key_env)
 
     return search_cfg
 
@@ -245,7 +253,7 @@ def get_research_config(cfg: DictConfig) -> dict[str, Any]:
         >>> research_cfg = get_research_config(cfg)
         >>> logger.info(research_cfg['max_analysts'])
     """
-    return OmegaConf.to_container(cfg.research, resolve=True)
+    return cast(dict[str, Any], OmegaConf.to_container(cfg.research, resolve=True))
 
 
 def get_logging_config(cfg: DictConfig) -> dict[str, Any]:
@@ -261,7 +269,7 @@ def get_logging_config(cfg: DictConfig) -> dict[str, Any]:
         >>> log_cfg = get_logging_config(cfg)
         >>> logger.info(log_cfg['level'])
     """
-    return OmegaConf.to_container(cfg.logging, resolve=True)
+    return cast(dict[str, Any], OmegaConf.to_container(cfg.logging, resolve=True))
 
 
 def get_output_config(cfg: DictConfig) -> dict[str, Any]:
@@ -277,7 +285,7 @@ def get_output_config(cfg: DictConfig) -> dict[str, Any]:
         >>> output_cfg = get_output_config(cfg)
         >>> logger.info(output_cfg['output_dir'])
     """
-    return OmegaConf.to_container(cfg.output, resolve=True)
+    return cast(dict[str, Any], OmegaConf.to_container(cfg.output, resolve=True))
 
 
 # Validation functions
