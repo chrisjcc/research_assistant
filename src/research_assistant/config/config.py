@@ -41,7 +41,7 @@ class ConfigPaths:
         """
         # Get package root
         current_file = Path(__file__)
-        root = current_file.parent.parent.parent  # Go up to project root
+        root = current_file.parent.parent.parent.parent  # Go up to project root
         config_dir = root / "src" / "research_assistant" / "config"
         logger.debug(f"Resolved config directory: {config_dir}")
 
