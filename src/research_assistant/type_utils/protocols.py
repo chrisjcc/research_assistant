@@ -22,7 +22,6 @@ checkpointer) should subclass these or at least satisfy them structurally.
 
 from __future__ import annotations
 
-from collections.abc import Callable
 from typing import Any, Protocol, TypeAlias, runtime_checkable
 
 try:
