@@ -14,7 +14,13 @@ Example:
 import logging
 from typing import Any, Literal
 
-from langchain_core.messages import AIMessage, HumanMessage, SystemMessage, get_buffer_string
+from langchain_core.messages import (
+    AIMessage,
+    BaseMessage,
+    HumanMessage,
+    SystemMessage,
+    get_buffer_string,
+)
 from langchain_openai import ChatOpenAI
 
 from ..core.schemas import Analyst
@@ -37,8 +43,9 @@ class InterviewError(Exception):
 
 
 @with_fallback()
-def _invoke_llm_for_report(llm, messages):
+def _invoke_llm_for_report(llm: Any, messages: Any) -> Any:
     return llm.invoke(messages)
+
 
 def generate_question(
     state: InterviewState, llm: ChatOpenAI | None = None, detailed_prompts: bool = False
@@ -103,7 +110,7 @@ def generate_question(
 
     try:
         logger.info("Invoking LLM for question generation")
-        question = _invoke_llm_for_report(llm, llm_messages)
+        question: BaseMessage | None = _invoke_llm_for_report(llm, llm_messages)
 
         if not isinstance(question, AIMessage):
             logger.warning(f"Expected AIMessage, got {type(question)}, converting")
@@ -197,7 +204,7 @@ def generate_answer(
 
     try:
         logger.info("Invoking LLM for answer generation")
-        answer = _invoke_llm_for_report(llm, llm_messages)
+        answer: BaseMessage | None = _invoke_llm_for_report(llm, llm_messages)
 
         if not isinstance(answer, AIMessage):
             answer = AIMessage(content=str(answer))

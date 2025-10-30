@@ -38,8 +38,9 @@ class ReportGenerationError(Exception):
 
 
 @with_fallback()
-def _invoke_llm_for_report(llm, messages):
+def _invoke_llm_for_report(llm: Any, messages: Any) -> Any:
     return llm.invoke(messages)
+
 
 def write_section(
     state: InterviewState, llm: ChatOpenAI | None = None, detailed_prompts: bool = False
@@ -110,9 +111,11 @@ def write_section(
 
     try:
         logger.info("Invoking LLM for section writing")
-        section = _invoke_llm_for_report(llm, messages)
+        section: BaseMessage | None = _invoke_llm_for_report(llm, messages)
 
-        section_content = section.content if hasattr(section, "content") else str(section)
+        section_content = (
+            section.content if section and hasattr(section, "content") else str(section)
+        )
 
         logger.debug(f"Generated section length: {len(section_content)} chars")
         logger.info("Successfully generated report section")
@@ -188,9 +191,9 @@ def write_report(
 
     try:
         logger.info("Invoking LLM for report synthesis")
-        report = llm.invoke(messages)
+        report: BaseMessage | None = _invoke_llm_for_report(llm, messages)
 
-        report_content = report.content if hasattr(report, "content") else str(report)
+        report_content = report.content if report and hasattr(report, "content") else str(report)
 
         logger.debug(f"Generated report length: {len(report_content)} chars")
         logger.info("Successfully synthesized report")
