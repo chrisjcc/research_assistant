@@ -345,7 +345,7 @@ class Comparable(Protocol):
 # ---------------------------------------------------------------------------
 
 
-def implements_protocol(obj: Any, protocol: type[Protocol]) -> bool:  # type: ignore[type-arg]
+def implements_protocol(obj: Any, protocol: type[Any]) -> bool:
     """Check if an object implements a protocol.
 
     Args:
@@ -362,7 +362,7 @@ def implements_protocol(obj: Any, protocol: type[Protocol]) -> bool:  # type: ig
     return isinstance(obj, protocol)
 
 
-def ensure_protocol(obj: Any, protocol: type[Protocol], name: str) -> None:  # type: ignore[type-arg]
+def ensure_protocol(obj: Any, protocol: type[Any], name: str) -> None:
     """Ensure an object implements a protocol.
 
     Args:
