@@ -542,9 +542,11 @@ def create_interface() -> gr.Blocks:
                 )
                 
                 download_file = gr.File(
-                    label="Download",
-                    visible=False
+                    label="📥 Download Report",
+                    interactive=False,
+                    visible=True
                 )
+
         
         # Event handlers
         start_btn.click(
@@ -595,7 +597,8 @@ def create_interface() -> gr.Blocks:
             
             filename.write_text(report_text, encoding="utf-8")
             
-            return str(filename)
+            logger.info(f"Report saved to: {filename.resolve()}")
+            return str(filename.resolve())
         
         download_btn.click(
             fn=save_report_to_file,
