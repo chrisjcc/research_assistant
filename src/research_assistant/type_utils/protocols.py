@@ -398,6 +398,17 @@ class Comparable(Protocol):
         """Check less than."""
         ...
 
+    def __le__(self, other: Any) -> bool:
+        """Check less than or equal."""
+        ...
+
+    def __gt__(self, other: Any) -> bool:
+        """Check greater than."""
+        ...
+
+    def __ge__(self, other: Any) -> bool:
+        """Check greater than or equal."""
+        ...
 
 # Utility functions for protocol checking
 
