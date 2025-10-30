@@ -477,7 +477,7 @@ def visualize_research_graph(
 
         # Display in notebook if available
         with suppress(Exception):
-            display(Image(img_data))
+            display(Image(img_data))  # type: ignore[no-untyped-call]
 
     except ImportError:
         logger.warning("IPython not available, skipping visualization")

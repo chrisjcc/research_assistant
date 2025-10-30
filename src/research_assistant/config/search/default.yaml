@@ -2,9 +2,9 @@
 # Default search configuration
 
 web:
-  enabled: true
-  provider: tavily
-  max_results: 3
+  enabled: true        # Whether web search is active
+  provider: tavily     # Web search provider
+  max_results: 3       # Number of web results to load
   use_cache: true
   cache_ttl: 3600
   rate_limit_requests: 10
@@ -20,7 +20,7 @@ web:
 
 wikipedia:
   enabled: true
-  load_max_docs: 2
+  load_max_docs: 2      # Max number of Wikipedia docs to load
   use_cache: true
   cache_ttl: 7200
   rate_limit_requests: 10

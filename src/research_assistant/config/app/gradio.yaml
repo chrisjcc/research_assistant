@@ -1,0 +1,7 @@
+# src/research_assistant/config/app/gradio.yaml
+# Configuration for Gradio web UI
+gradio:
+  server_name: "0.0.0.0"  # Network interface to bind the Gradio server
+  port: 7860    # Port to run the server on
+  share: false  # Create a public share link
+  debug: false  # Enable debug mode
