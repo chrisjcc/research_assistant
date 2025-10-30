@@ -68,7 +68,7 @@ MetricsDict: TypeAlias = dict[str, int | float | str | None]
 
 
 @runtime_checkable
-class (Protocol):
+class LLMProvider(Protocol):
     """Protocol for LLM providers.
 
     The intent is to cover LangChain-like chat models:
