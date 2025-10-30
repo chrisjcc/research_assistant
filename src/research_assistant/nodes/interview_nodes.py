@@ -24,6 +24,7 @@ from ..prompts.interview_prompts import (
     format_question_instructions,
     is_interview_complete,
 )
+from ..utils.retry import with_fallback
 
 # Configure logger
 logger = logging.getLogger(__name__)
@@ -34,6 +35,10 @@ class InterviewError(Exception):
 
     pass
 
+
+@with_fallback()
+def _invoke_llm_for_report(llm, messages):
+    return llm.invoke(messages)
 
 def generate_question(
     state: InterviewState, llm: ChatOpenAI | None = None, detailed_prompts: bool = False
@@ -98,7 +103,7 @@ def generate_question(
 
     try:
         logger.info("Invoking LLM for question generation")
-        question = llm.invoke(llm_messages)
+        question = _invoke_llm_for_report(llm, llm_messages)
 
         if not isinstance(question, AIMessage):
             logger.warning(f"Expected AIMessage, got {type(question)}, converting")
@@ -192,7 +197,7 @@ def generate_answer(
 
     try:
         logger.info("Invoking LLM for answer generation")
-        answer = llm.invoke(llm_messages)
+        answer = _invoke_llm_for_report(llm, llm_messages)
 
         if not isinstance(answer, AIMessage):
             answer = AIMessage(content=str(answer))

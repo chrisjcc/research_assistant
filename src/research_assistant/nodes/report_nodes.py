@@ -25,6 +25,7 @@ from ..prompts.report_prompts import (
     format_report_instructions,
     format_section_instructions,
 )
+from ..utils.retry import with_fallback
 
 # Configure logger
 logger = logging.getLogger(__name__)
@@ -35,6 +36,10 @@ class ReportGenerationError(Exception):
 
     pass
 
+
+@with_fallback()
+def _invoke_llm_for_report(llm, messages):
+    return llm.invoke(messages)
 
 def write_section(
     state: InterviewState, llm: ChatOpenAI | None = None, detailed_prompts: bool = False
@@ -105,7 +110,7 @@ def write_section(
 
     try:
         logger.info("Invoking LLM for section writing")
-        section = llm.invoke(messages)
+        section = _invoke_llm_for_report(llm, messages)
 
         section_content = section.content if hasattr(section, "content") else str(section)
 
