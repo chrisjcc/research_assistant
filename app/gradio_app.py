@@ -11,10 +11,8 @@ Usage:
 """
 
 import gradio as gr
-import json
-import logging
 from pathlib import Path
-from typing import Dict, Any, List, Optional, Tuple
+from typing import Optional, Tuple
 from datetime import datetime
 import time
 
