@@ -16,6 +16,10 @@ from typing import Optional, Tuple
 from datetime import datetime
 import time
 
+from reportlab.platypus import SimpleDocTemplate, Paragraph
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib.pagesizes import A4
+
 from research_assistant.config import load_config
 from research_assistant.core.state import create_initial_research_state
 from research_assistant.utils import setup_logging, get_logger, get_metrics, format_duration
@@ -585,20 +589,29 @@ def create_interface() -> gr.Blocks:
         )
         
         def save_report_to_file(report_text: str) -> Optional[str]:
-            """Save report to temporary file for download."""
+            """Save report as PDF for download."""
             if not report_text:
                 return None
-            
+
             output_dir = Path("outputs")
             output_dir.mkdir(exist_ok=True)
-            
+
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            filename = output_dir / f"research_report_{timestamp}.md"
-            
-            filename.write_text(report_text, encoding="utf-8")
-            
-            logger.info(f"Report saved to: {filename.resolve()}")
-            return str(filename.resolve())
+            pdf_path = output_dir / f"research_report_{timestamp}.pdf"
+
+            # Configure PDF document
+            doc = SimpleDocTemplate(str(pdf_path), pagesize=A4)
+            styles = getSampleStyleSheet()
+
+            # Split report into paragraphs
+            paragraphs = [Paragraph(p.strip(), styles["Normal"]) 
+                          for p in report_text.split("\n") if p.strip()]
+
+            doc.build(paragraphs)
+
+            logger.info(f"📄 PDF report saved to: {pdf_path.resolve()}")
+
+            return str(pdf_path.resolve())
         
         download_btn.click(
             fn=save_report_to_file,
