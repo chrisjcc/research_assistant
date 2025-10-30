@@ -86,7 +86,7 @@ def create_analysts(
     if max_analysts < 1 or max_analysts > 10:
         raise ValueError("max_analysts must be between 1 and 10")
 
-    if not isinstance(max_analysts, int) or max_analysts < 1:
+    if not isinstance(max_analysts, int):
         raise ValueError(f"max_analysts must be positive integer, got {max_analysts}")
 
     logger.debug(
