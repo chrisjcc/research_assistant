@@ -19,12 +19,13 @@ Example:
 import logging
 from typing import Any
 
-from langchain_core.messages import HumanMessage, SystemMessage
+from langchain_core.messages import BaseMessage, HumanMessage, SystemMessage
 from langchain_openai import ChatOpenAI
 
 from ..core.schemas import Analyst, Perspectives
 from ..core.state import GenerateAnalystsState
 from ..prompts.analyst_prompts import format_analyst_instructions
+from ..utils.retry import with_fallback
 
 # Configure logger
 logger = logging.getLogger(__name__)
@@ -34,6 +35,11 @@ class AnalystCreationError(Exception):
     """Raised when analyst creation fails."""
 
     pass
+
+
+@with_fallback()
+def _invoke_llm_for_report(llm: Any, messages: Any) -> Any:
+    return llm.invoke(messages)
 
 
 def create_analysts(
@@ -122,7 +128,7 @@ def create_analysts(
     # Generate analysts
     try:
         logger.info("Invoking LLM for analyst generation")
-        perspectives = structured_llm.invoke(messages)
+        perspectives: BaseMessage | None = _invoke_llm_for_report(structured_llm, messages)
 
         if not isinstance(perspectives, Perspectives):
             raise AnalystCreationError(f"Expected Perspectives object, got {type(perspectives)}")

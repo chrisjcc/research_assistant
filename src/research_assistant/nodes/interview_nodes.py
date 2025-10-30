@@ -14,7 +14,13 @@ Example:
 import logging
 from typing import Any, Literal
 
-from langchain_core.messages import AIMessage, HumanMessage, SystemMessage, get_buffer_string
+from langchain_core.messages import (
+    AIMessage,
+    BaseMessage,
+    HumanMessage,
+    SystemMessage,
+    get_buffer_string,
+)
 from langchain_openai import ChatOpenAI
 
 from ..core.schemas import Analyst
@@ -24,6 +30,7 @@ from ..prompts.interview_prompts import (
     format_question_instructions,
     is_interview_complete,
 )
+from ..utils.retry import with_fallback
 
 # Configure logger
 logger = logging.getLogger(__name__)
@@ -33,6 +40,11 @@ class InterviewError(Exception):
     """Raised when interview operations fail."""
 
     pass
+
+
+@with_fallback()
+def _invoke_llm_for_report(llm: Any, messages: Any) -> Any:
+    return llm.invoke(messages)
 
 
 def generate_question(
@@ -98,7 +110,7 @@ def generate_question(
 
     try:
         logger.info("Invoking LLM for question generation")
-        question = llm.invoke(llm_messages)
+        question: BaseMessage | None = _invoke_llm_for_report(llm, llm_messages)
 
         if not isinstance(question, AIMessage):
             logger.warning(f"Expected AIMessage, got {type(question)}, converting")
@@ -192,7 +204,7 @@ def generate_answer(
 
     try:
         logger.info("Invoking LLM for answer generation")
-        answer = llm.invoke(llm_messages)
+        answer: BaseMessage | None = _invoke_llm_for_report(llm, llm_messages)
 
         if not isinstance(answer, AIMessage):
             answer = AIMessage(content=str(answer))
