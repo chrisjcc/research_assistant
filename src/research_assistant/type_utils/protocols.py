@@ -69,7 +69,7 @@ MetricsDict: TypeAlias = dict[str, int | float | str | None]
 
 
 @runtime_checkable
-class LLMProvider(Protocol):
+class (Protocol):
     """Protocol for LLM providers.
 
     The intent is to cover LangChain-like chat models:
@@ -90,9 +90,9 @@ class LLMProvider(Protocol):
 
         Implementations should do the actual model call here.
         """
-        raise NotImplementedError("LLMProvider.invoke() must be implemented")
+        raise NotImplementedError(".invoke() must be implemented")
 
-    def with_structured_output(self, schema: type[Any]) -> "LLMProvider":
+    def with_structured_output(self, schema: type[Any]) -> LLMProvider:
         """Return an LLM view that produces structured output for the given schema.
 
         This mirrors the common LangChain/OpenAI pattern:
