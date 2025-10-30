@@ -42,7 +42,8 @@ class ConfigPaths:
         # Get package root
         current_file = Path(__file__)
         root = current_file.parent.parent.parent  # Go up to project root
-        config_dir = root / "config"
+        config_dir = root / "src" / "research_assistant" / "config"
+        logger.debug(f"Resolved config directory: {config_dir}")
 
         return cls(
             root=root,
@@ -430,7 +431,7 @@ def create_quick_research_config(
         >>> cfg = create_quick_research_config("AI Safety", max_analysts=4)
     """
     overrides = [
-        f"research.topic='{topic}'",  # <-- include topic here
+        f"research.topic='{topic}'",
         f"research.max_analysts={max_analysts}",
         f"llm.model={llm_model}",
         "research.enable_interrupts=false",  # Quick run without interrupts

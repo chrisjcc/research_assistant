@@ -6,30 +6,23 @@ set -e
 
 echo "🚀 Launching Research Assistant Web UI..."
 
-# Check if virtual environment exists
-if [ ! -d ".venv" ] && [ ! -d "venv" ]; then
-    echo "⚠️  No virtual environment found. Creating one..."
-    python -m venv .venv
-    source .venv/bin/activate
-    pip install -e ".[dev]"
+# Ensure environment is active
+if [ -z "$CONDA_DEFAULT_ENV" ]; then
+    echo "⚠️  Not in Conda env. Please activate 'research-assistant' first:"
+    echo "   conda activate research-assistant"
+    exit 1
 else
-    if [ -d ".venv" ]; then
-        source .venv/bin/activate
-    else
-        source venv/bin/activate
-    fi
+    echo "✅ Using Conda environment: $CONDA_DEFAULT_ENV"
 fi
 
-# Check environment variables
+# Check API keys
 if [ -z "$OPENAI_API_KEY" ] && [ -z "$ANTHROPIC_API_KEY" ]; then
     echo "❌ Error: No API keys found!"
-    echo "Please set OPENAI_API_KEY or ANTHROPIC_API_KEY environment variable."
     exit 1
 fi
 
 # Create outputs directory
-mkdir -p outputs
-mkdir -p logs
+mkdir -p outputs logs
 
 # Launch the app
 echo "✅ Starting Gradio app on http://localhost:7860"
