@@ -1,19 +1,20 @@
+# src/research_assistant/config/default.yaml
+# Top-level configuration composition for the Research Assistant.
+
+defaults:
+  - search: default      # Loads src/research_assistant/config/search/default.yaml
+  - app: gradio          # Loads src/research_assistant/config/app/gradio.yaml
+  - _self_               # Keep _self_ last so local keys below can override
+
 llm:
   provider: openai
   model: gpt-4o
   temperature: 0
-  
-search:
-  web:
-    provider: tavily
-    max_results: 3
-  wikipedia:
-    load_max_docs: 2
 
 research:
   max_analysts: 3
   max_interview_turns: 2
-  
+
 logging:
   level: INFO
   format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"

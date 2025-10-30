@@ -7,7 +7,7 @@ Usage:
     python app/gradio_app.py
     
     Or with custom settings:
-    python app/gradio_app.py --port 7860 --share
+    python app/gradio_app.py gradio.port=7861 gradio.share=true
 """
 
 import gradio as gr
@@ -20,7 +20,11 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib.pagesizes import A4
 
-from research_assistant.config import load_config
+from research_assistant.config.config import (
+    load_config,
+    load_env_file,
+    check_required_env_vars,
+)
 from research_assistant.core.state import create_initial_research_state
 from research_assistant.utils import setup_logging, get_logger, get_metrics, format_duration
 from research_assistant.core.schemas import Analyst
@@ -46,7 +50,7 @@ def initialize_graph() -> None:
     try:
         logger.info("Initializing research graph...")
         config = load_config()
-        
+
         from research_assistant.graphs.research_graph import create_research_system
         system = create_research_system(
             llm_model=config.llm.model,
@@ -644,30 +648,18 @@ def create_interface() -> gr.Blocks:
 
 def main():
     """Run the Gradio application."""
-    import argparse
-    
-    parser = argparse.ArgumentParser(description="Research Assistant Web UI")
-    parser.add_argument(
-        "--port",
-        type=int,
-        default=7860,
-        help="Port to run the server on"
-    )
-    parser.add_argument(
-        "--share",
-        action="store_true",
-        help="Create a public share link"
-    )
-    parser.add_argument(
-        "--debug",
-        action="store_true",
-        help="Enable debug mode"
-    )
-    
-    args = parser.parse_args()
-    
+
     # Initialize graph on startup
     try:
+        # Load Hydra configs
+        load_env_file()
+        cfg = load_config()
+
+        # Validate required environment variables
+        if not check_required_env_vars(cfg):
+            logger.error("Missing required environment variables. Exiting.")
+            return
+
         initialize_graph()
     except Exception as e:
         logger.error(f"Failed to initialize: {e}")
@@ -677,13 +669,14 @@ def main():
     
     # Create and launch interface
     interface = create_interface()
-    
+
+    # Launch using config parameters    
     interface.launch(
-        server_name="0.0.0.0",
-        server_port=args.port,
-        share=args.share,
-        debug=args.debug,
-        show_error=True
+        server_name=cfg.app.gradio.server_name,
+        server_port=cfg.app.gradio.port,
+        share=cfg.app.gradio.share,
+        debug=cfg.app.gradio.debug,
+        show_error=True,
     )
 
 
