@@ -1,7 +1,9 @@
 [project]
-name = "research-assistant"
+name = "ai-research-assistant"
 version = "0.1.0"
 description = "AI-powered research assistant using LangGraph"
+readme = "README.md"
+authors = [{ name = "Christian Contreras Campana" }]
 requires-python = ">=3.11"
 dependencies = [
     "gradio>=5.49.1",
@@ -62,3 +64,5 @@ namespace_packages = true  # Optional but helps with relatives
 [tool.coverage.run]
 relative_files = true
 
+[tool.setuptools.packages.find]
+where = ["src"]
