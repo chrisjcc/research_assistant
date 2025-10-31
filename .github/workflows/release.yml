@@ -26,6 +26,9 @@ permissions:
 jobs:
   validate:
     runs-on: ubuntu-latest
+    environment: pypi
+    env:
+      TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
     steps:
       - uses: actions/checkout@v4
         with:
