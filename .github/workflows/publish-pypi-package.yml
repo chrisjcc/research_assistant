@@ -18,7 +18,6 @@ permissions:
 jobs:
   release-build:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
 
@@ -28,8 +27,7 @@ jobs:
 
       - name: Build release distributions
         run: |
-          # NOTE: put your own distribution build steps here.
-          python -m pip install build
+          python -m pip install --upgrade pip build
           python -m build
 
       - name: Upload distributions
@@ -38,25 +36,18 @@ jobs:
           name: release-dists
           path: dist/
 
+  # ----------------------------------------------------------------
+  # ✅ Regular PyPI publish for non-pre-releases
+  # ----------------------------------------------------------------
   pypi-publish:
+    needs: [release-build]
     runs-on: ubuntu-latest
-    needs:
-      - release-build
+    if: ${{ !github.event.release.prerelease }}
     permissions:
-      # IMPORTANT: this permission is mandatory for trusted publishing
-      id-token: write
-
-    # Dedicated environments with protections for publishing are strongly recommended.
-    # For more information, see: https://docs.github.com/en/actions/deployment/targeting-different-environments/using-environments-for-deployment#deployment-protection-rules
+      id-token: write  # required for trusted publishing
     environment:
       name: pypi
-      # OPTIONAL: uncomment and update to include your PyPI project URL in the deployment status:
       url: https://pypi.org/p/ai-research-assistant
-      #
-      # ALTERNATIVE: if your GitHub Release name is the PyPI project version string
-      # ALTERNATIVE: exactly, uncomment the following line instead:
-      # url: https://pypi.org/project/ai-research-assistant/${{ github.event.release.name }}
-
     steps:
       - name: Retrieve release distributions
         uses: actions/download-artifact@v4
@@ -64,7 +55,82 @@ jobs:
           name: release-dists
           path: dist/
 
+      # 🧩 Check if version already exists on PyPI
+      - name: Check if version exists on PyPI
+        id: check_version
+        run: |
+          VERSION=$(python -c "import os, re; files=os.listdir('dist'); print(re.search(r'([0-9]+\.[0-9]+\.[0-9]+)', files[0]).group(1))")
+          echo "Version detected: $VERSION"
+          if curl -s -f https://pypi.org/pypi/ai-research-assistant/$VERSION/json > /dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      # 🚀 Only publish if version doesn't exist
       - name: Publish release distributions to PyPI
+        if: steps.check_version.outputs.exists == 'false'
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           packages-dir: dist/
+          skip-existing: true  # still useful as a last line of defense
+
+      - name: Skip notice (version already exists)
+        if: steps.check_version.outputs.exists == 'true'
+        run: echo "Version already exists on PyPI, skipping upload."
+
+  # ----------------------------------------------------------------
+  # ✅ TestPyPI publish for pre-releases
+  # ----------------------------------------------------------------
+  testpypi-publish:
+    needs: [release-build]
+    runs-on: ubuntu-latest
+    if: ${{ github.event.release.prerelease }}
+    environment:
+      name: testpypi
+      url: https://test.pypi.org/p/research-assistant
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: release-dists
+          path: dist/
+
+      # 🧩 Check if version already exists on TestPyPI
+      - name: Check if version exists on TestPyPI
+        id: check_version
+        run: |
+          VERSION=$(python -c "import os, re; files=os.listdir('dist'); print(re.search(r'([0-9]+\.[0-9]+\.[0-9]+)', files[0]).group(1))")
+          echo "Version detected: $VERSION"
+          if curl -s -f https://test.pypi.org/pypi/research-assistant/$VERSION/json > /dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Publish to TestPyPI
+        if: steps.check_version.outputs.exists == 'false'
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          password: ${{ secrets.TEST_PYPI_API_TOKEN }}
+          repository-url: https://test.pypi.org/legacy/
+          skip-existing: true
+
+      - name: Skip notice (version already exists)
+        if: steps.check_version.outputs.exists == 'true'
+        run: echo "Version already exists on TestPyPI, skipping upload."
+
+  # ----------------------------------------------------------------
+  # ✅ Notification summary
+  # ----------------------------------------------------------------
+  notify:
+    needs: [pypi-publish, testpypi-publish]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Send notification
+        run: |
+          echo "Release '${{ github.event.release.tag_name }}' completed!"
+          echo "Pre-release: ${{ github.event.release.prerelease }}"
+          echo "PyPI job result: ${{ needs.pypi-publish.result }}"
+          echo "TestPyPI job result: ${{ needs.testpypi-publish.result }}      
