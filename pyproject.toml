@@ -71,3 +71,10 @@ include-package-data = true
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+research_assistant = [
+    "config/*.yaml",
+    "config/**/*.yaml",
+]
+

@@ -224,7 +224,7 @@ def validate_positive_number(value: int | float, param_name: str = "value") -> b
     Raises:
         ValueError: If number is not positive.
     """
-    if not isinstance(value, (int, float)):
+    if not isinstance(value, int | float):
         raise TypeError(f"{param_name} must be a number")
 
     if value <= 0:
@@ -253,7 +253,7 @@ def validate_range(
     Raises:
         ValueError: If number is out of range.
     """
-    if not isinstance(value, (int, float)):
+    if not isinstance(value, int | float):
         raise TypeError(f"{param_name} must be a number")
 
     if min_val is not None and value < min_val:

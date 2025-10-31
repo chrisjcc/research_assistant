@@ -364,7 +364,7 @@ def visualize_interview_graph(
 
         # Display in notebook if available
         with suppress(Exception):
-            display(Image(img_data))
+            display(Image(img_data))  # type: ignore
     except ImportError:
         logger.warning("IPython not available, skipping visualization")
     except Exception as e:
