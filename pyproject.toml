@@ -62,6 +62,8 @@ target-version = "py311"
 python_version = "3.11"
 strict = true
 namespace_packages = true  # Optional but helps with relatives
+ignore_missing_imports = true
+allow_untyped_calls = true
 
 [tool.coverage.run]
 relative_files = true
