@@ -91,7 +91,7 @@ jobs:
       contents: read
     environment:
       name: testpypi
-      url: https://test.pypi.org/p/research-assistant
+      url: https://test.pypi.org/p/ai-research-assistant
     steps:
       - name: Download artifacts
         uses: actions/download-artifact@v4
@@ -105,7 +105,7 @@ jobs:
         run: |
           VERSION=$(python -c "import os, re; files=os.listdir('dist'); print(re.search(r'([0-9]+\.[0-9]+\.[0-9]+)', files[0]).group(1))")
           echo "Version detected: $VERSION"
-          if curl -s -f https://test.pypi.org/pypi/research-assistant/$VERSION/json > /dev/null 2>&1; then
+          if curl -s -f https://test.pypi.org/pypi/ai-research-assistant/$VERSION/json > /dev/null 2>&1; then
             echo "exists=true" >> "$GITHUB_OUTPUT"
           else
             echo "exists=false" >> "$GITHUB_OUTPUT"
