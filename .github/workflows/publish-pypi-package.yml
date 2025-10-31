@@ -86,6 +86,9 @@ jobs:
     needs: [build-distributions]
     runs-on: ubuntu-latest
     if: ${{ !github.event.release.prerelease }}    # ← only run on full release
+    permissions:
+      id-token: write   # REQUIRED for trusted publishing via OIDC
+      contents: read
     environment:
       name: testpypi
       url: https://test.pypi.org/p/research-assistant
