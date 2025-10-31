@@ -39,11 +39,14 @@ class ConfigPaths:
         Returns:
             ConfigPaths instance with standard paths.
         """
-        # Get package root
-        current_file = Path(__file__)
-        root = current_file.parent.parent.parent.parent  # Go up to project root
-        config_dir = root / "src" / "research_assistant" / "config"
+        # Get the directory containing this config.py file (the config directory itself)
+        config_dir = Path(__file__).parent.resolve()
+
+        # Root is the package root (go up two levels: config -> research_assistant -> src)
+        root = config_dir.parent.parent.parent
+
         logger.debug(f"Resolved config directory: {config_dir}")
+        logger.debug(f"Resolved root directory: {root}")
 
         return cls(
             root=root,
@@ -98,13 +101,26 @@ def load_config(
 
     # Determine config path
     if config_path is None:
-        paths = ConfigPaths.from_package()
-        config_path = str(paths.config_dir.absolute())
+        # Get absolute path to the installed config directory
+        config_dir = Path(__file__).parent.resolve()
+        config_path = str(config_dir)
+    else:
+        # Ensure provided path is absolute
+        config_path = str(Path(config_path).resolve())
 
     logger.debug(f"Config path: {config_path}")
 
+    # Verify config directory exists
+    if not Path(config_path).exists():
+        raise RuntimeError(f"Config directory does not exist: {config_path}")
+
+    # Verify config file exists
+    config_file = Path(config_path) / f"{config_name}.yaml"
+    if not config_file.exists():
+        raise RuntimeError(f"Config file does not exist: {config_file}")
+
     try:
-        # Initialize Hydra with config directory
+        # Initialize Hydra with absolute config directory path
         initialize_config_dir(config_dir=config_path, version_base=None)
 
         # Compose configuration with overrides

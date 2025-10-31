@@ -357,7 +357,7 @@ def get_interview_statistics(state: InterviewState) -> dict[str, Any]:
 
     # Count messages by type
     num_questions = len(
-        [m for m in messages if isinstance(m, (HumanMessage, AIMessage)) and m.name != "expert"]
+        [m for m in messages if isinstance(m, HumanMessage | AIMessage) and m.name != "expert"]
     )
 
     num_answers = len([m for m in messages if isinstance(m, AIMessage) and m.name == "expert"])

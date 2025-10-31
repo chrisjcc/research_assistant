@@ -520,8 +520,8 @@ def format_table(headers: list[str], rows: list[list[Any]], markdown: bool = Tru
 
     # Plain text table
     if PANDAS_AVAILABLE:
-        df = pd.DataFrame(rows, columns=headers)
-        return str(df.to_string(index=False))
+        dataframe = pd.DataFrame(rows, columns=headers)
+        return str(dataframe.to_string(index=False))
 
     # Simple plain text format
     col_widths = [len(h) for h in headers]
