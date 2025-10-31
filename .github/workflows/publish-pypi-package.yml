@@ -16,7 +16,7 @@ permissions:
   contents: read
 
 jobs:
-  release-build:
+  build-distributions:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -40,7 +40,7 @@ jobs:
   # ✅ Regular PyPI publish for non-pre-releases
   # ----------------------------------------------------------------
   pypi-publish:
-    needs: [release-build]
+    needs: [build-distributions]
     runs-on: ubuntu-latest
     if: ${{ !github.event.release.prerelease }}
     permissions:
@@ -83,9 +83,9 @@ jobs:
   # ✅ TestPyPI publish for pre-releases
   # ----------------------------------------------------------------
   testpypi-publish:
-    needs: [release-build]
+    needs: [build-distributions]
     runs-on: ubuntu-latest
-    if: ${{ github.event.release.prerelease }}
+    if: ${{ !github.event.release.prerelease }}    # ← only run on full release
     environment:
       name: testpypi
       url: https://test.pypi.org/p/research-assistant
