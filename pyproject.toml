@@ -1,6 +1,6 @@
 [project]
 name = "ai-research-assistant"
-version = "0.1.5"
+version = "0.1.6"
 description = "AI-powered research assistant using LangGraph"
 readme = "README.md"
 authors = [{ name = "Christian Contreras Campana" }]
