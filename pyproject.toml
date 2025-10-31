@@ -6,7 +6,6 @@ readme = "README.md"
 authors = [{ name = "Christian Contreras Campana" }]
 requires-python = ">=3.11"
 dependencies = [
-    "gradio>=5.49.1",
     "langchain>=0.1.0",
     "langchain-openai>=0.0.5",
     "langchain-community>=0.0.20",
@@ -48,9 +47,12 @@ dev = [
 ]
 
 ui = [
-    "gradio>=4.0.0",
-    "streamlit>=1.28.0",
+    "gradio>=5.49.1",
 ]
+
+[build-system]
+requires = ["setuptools>=65", "wheel"]
+build-backend = "setuptools.build_meta"
 
 [tool.ruff]
 line-length = 100
@@ -63,6 +65,9 @@ namespace_packages = true  # Optional but helps with relatives
 
 [tool.coverage.run]
 relative_files = true
+
+[tool.setuptools]
+include-package-data = true
 
 [tool.setuptools.packages.find]
 where = ["src"]
