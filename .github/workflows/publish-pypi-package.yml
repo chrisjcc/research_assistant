@@ -133,4 +133,4 @@ jobs:
           echo "Release '${{ github.event.release.tag_name }}' completed!"
           echo "Pre-release: ${{ github.event.release.prerelease }}"
           echo "PyPI job result: ${{ needs.pypi-publish.result }}"
-          echo "TestPyPI job result: ${{ needs.testpypi-publish.result }}      
+          echo "TestPyPI job result: ${{ needs.testpypi-publish.result }}"
